@@ -83,6 +83,28 @@ function buildExampleWebsite(weaver) {
     weaver.divEnd() // End flex container
         .divEnd(); // End features container
     
+    // Drag & Drop Editor Section
+    weaver.divStart('', '', { 
+            style: 'max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: 2rem;' 
+        })
+        .h2('🎨 Visual Editor', '', { 
+            style: 'color: white; margin-bottom: 1rem;' 
+        })
+        .paragraph('Try our drag-and-drop visual editor to build websites using Web Weaver components!', '', { 
+            style: 'color: rgba(255,255,255,0.9); margin-bottom: 2rem; font-size: 1.1rem;' 
+        })
+        .button('🚀 Launch Visual Editor', () => {
+            // Check if DragDropEditor is available
+            if (typeof launchDragDropEditor === 'function') {
+                launchDragDropEditor();
+            } else {
+                weaver.toast('Please include the drag-and-drop-editor.js file to use this feature', 'warning', 3000);
+            }
+        }, 'btn', '', { 
+            style: 'background: white; color: #667eea; border: none; padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;' 
+        })
+    .divEnd();
+    
     // Theme switching example
     weaver.divStart('text-center p-8')
         .h2('Try Different Themes', 'mb-8')
