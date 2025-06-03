@@ -66,6 +66,77 @@ class DragDropEditor {
                 resize: horizontal;
             }
             
+            /* Component tabs styling */
+            .component-tabs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 2px;
+                margin-bottom: 1rem;
+                border-bottom: 1px solid #dee2e6;
+                padding-bottom: 0.5rem;
+            }
+            
+            .component-tab {
+                padding: 0.5rem 0.75rem;
+                border: 1px solid #dee2e6;
+                background: #f8f9fa;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.75rem;
+                font-weight: 500;
+                transition: all 0.2s;
+                white-space: nowrap;
+                min-width: 0;
+                flex: 0 0 auto;
+            }
+            
+            .component-tab:hover {
+                background: #e9ecef;
+                border-color: #adb5bd;
+            }
+            
+            .component-tab.active {
+                background: #0d6efd;
+                border-color: #0d6efd;
+                color: white;
+            }
+            
+            /* Component categories */
+            .component-category {
+                display: none;
+            }
+            
+            .component-category.active {
+                display: block;
+            }
+            
+            /* Draggable components */
+            .draggable-component {
+                background: white;
+                border: 1px solid #e9ecef;
+                border-radius: 6px;
+                padding: 0.75rem;
+                margin-bottom: 0.5rem;
+                cursor: grab;
+                transition: all 0.2s;
+                position: relative;
+            }
+            
+            .draggable-component:hover {
+                border-color: #0d6efd;
+                box-shadow: 0 2px 4px rgba(13, 110, 253, 0.15);
+                transform: translateY(-1px);
+            }
+            
+            .draggable-component:active {
+                cursor: grabbing;
+            }
+            
+            .draggable-component.dragging {
+                opacity: 0.5;
+                transform: rotate(2deg);
+            }
+            
             .canvas-component {
                 background: white;
                 border: 1px solid #dee2e6;
@@ -90,36 +161,15 @@ class DragDropEditor {
                 transform: rotate(2deg);
             }
             
-            /* Component sizing controls */
-            .component-size-controls {
-                position: absolute;
-                top: 5px;
-                right: 40px;
+            /* Canvas component collapsed state */
+            .canvas-component.collapsed .component-preview {
                 display: none;
-                gap: 2px;
-                background: rgba(255,255,255,0.9);
-                border-radius: 4px;
-                padding: 2px;
             }
             
-            .canvas-component:hover .component-size-controls {
-                display: flex;
-            }
-            
-            .size-btn {
-                background: none;
-                border: 1px solid #dee2e6;
-                border-radius: 3px;
-                padding: 2px 4px;
-                font-size: 10px;
-                cursor: pointer;
-                color: #6c757d;
-            }
-            
-            .size-btn:hover {
-                background: #f8f9fa;
-                border-color: #0d6efd;
-                color: #0d6efd;
+            .canvas-component.collapsed {
+                min-height: auto;
+                height: auto;
+                overflow: visible;
             }
             
             /* Comment components styling */
@@ -359,6 +409,29 @@ class DragDropEditor {
                 font-size: 10px;
             }
             
+            .collapse-btn {
+                color: #6c757d;
+                font-size: 10px;
+                transform: rotate(0deg);
+                transition: transform 0.2s;
+            }
+            
+            .collapse-btn.collapsed {
+                transform: rotate(-90deg);
+            }
+            
+            .collapse-btn:hover {
+                color: #495057;
+            }
+            
+            /* Action divider */
+            .action-divider {
+                width: 1px;
+                height: 16px;
+                background: #dee2e6;
+                margin: 0 0.25rem;
+            }
+            
             .canvas-placeholder {
                 text-align: center;
                 color: #6c757d;
@@ -506,6 +579,25 @@ class DragDropEditor {
                 background: var(--bg-color);
                 color: var(--text-color);
                 border-color: var(--border-color);
+            }
+            
+            [data-theme="dark"] .component-tab {
+                background: var(--bg-secondary);
+                border-color: var(--border-color);
+                color: var(--text-color);
+            }
+            
+            [data-theme="dark"] .component-tab:hover {
+                background: var(--bg-hover);
+            }
+            
+            [data-theme="dark"] .component-tab.active {
+                background: var(--primary-color);
+                color: white;
+            }
+            
+            [data-theme="dark"] .action-divider {
+                background: var(--border-color);
             }
         `);
     }
@@ -1078,7 +1170,9 @@ class DragDropEditor {
             media: 'Media',
             lists: 'Lists',
             navigation: 'Navigation',
-            layout: 'Layout'
+            layout: 'Layout',
+            javascript: 'JavaScript',
+            canvas: 'Canvas'
         };
         return categoryNames[category] || category;
     }
@@ -1121,6 +1215,75 @@ class DragDropEditor {
                 })
                     .text(`${component.name}`, 'small')
                     .divEnd();
+                return;
+            }
+
+            // Handle comment components
+            if (component.isComment) {
+                const commentText = componentInstance.defaultParams[0] || 'Comment text';
+                weaver.divStart('preview-element', '', {
+                    style: 'font-style: italic; color: #856404; background: #fff3cd; padding: 0.5rem; border-radius: 4px;'
+                })
+                    .text(`💬 ${commentText}`, 'div')
+                    .divEnd();
+                return;
+            }
+
+            // Handle JavaScript components
+            if (component.isJavaScript) {
+                let jsCode = '';
+                switch (component.method) {
+                    case 'jsVariable':
+                        const type = componentInstance.defaultParams[0] || 'const';
+                        const name = componentInstance.defaultParams[1] || 'myVariable';
+                        const value = componentInstance.defaultParams[2] || '"value"';
+                        jsCode = `${type} ${name} = ${value};`;
+                        break;
+                    case 'jsFunction':
+                        const funcName = componentInstance.defaultParams[0] || 'myFunction';
+                        const params = componentInstance.defaultParams[1] || '';
+                        const body = componentInstance.defaultParams[2] || 'console.log("Hello!");';
+                        jsCode = `function ${funcName}(${params}) {\n  ${body}\n}`;
+                        break;
+                    case 'jsEventListener':
+                        const selector = componentInstance.defaultParams[0] || '#myButton';
+                        const event = componentInstance.defaultParams[1] || 'click';
+                        const callback = componentInstance.defaultParams[2] || 'function() { alert("Clicked!"); }';
+                        jsCode = `document.querySelector('${selector}').addEventListener('${event}', ${callback});`;
+                        break;
+                    case 'jsComment':
+                        jsCode = `// ${componentInstance.defaultParams[0] || 'JavaScript comment'}`;
+                        break;
+                    default:
+                        jsCode = `<${component.method}>`;
+                }
+
+                weaver.divStart('preview-element', '', {
+                    style: 'font-family: "Courier New", monospace; background: #f8f9fa; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #007bff;'
+                })
+                    .text(jsCode, 'code')
+                    .divEnd();
+                return;
+            }
+
+            // Handle Canvas components
+            if (component.isCanvasComponent) {
+                if (component.method === 'canvas') {
+                    const width = componentInstance.defaultParams[0] || '400';
+                    const height = componentInstance.defaultParams[1] || '300';
+                    weaver.divStart('preview-element', '', {
+                        style: `width: ${Math.min(width, 200)}px; height: ${Math.min(height, 150)}px; border: 2px dashed #6f42c1; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%), linear-gradient(-45deg, #f8f9fa 25%, transparent 25%); background-size: 10px 10px;`
+                    })
+                        .text(`🎨 Canvas ${width}×${height}`, 'div', 'text-center')
+                        .divEnd();
+                } else if (component.method === 'canvasScript') {
+                    const script = componentInstance.defaultParams[1] || 'Canvas drawing code';
+                    weaver.divStart('preview-element', '', {
+                        style: 'font-family: "Courier New", monospace; background: #f0f8ff; padding: 0.5rem; border-radius: 4px; border-left: 3px solid #6f42c1; max-height: 100px; overflow: hidden;'
+                    })
+                        .text(`🖌️ ${script.substring(0, 50)}${script.length > 50 ? '...' : ''}`, 'code')
+                        .divEnd();
+                }
                 return;
             }
 
@@ -1859,8 +2022,12 @@ weaver.clear()`;
         
         const canvasWeaver = new WebWeaver(canvasComponentContainer.id);
         
-        // Add special class for closing components
-        const extraClasses = component.isClosing ? 'closing-component' : '';
+        // Determine extra classes based on component type
+        let extraClasses = '';
+        if (component.isClosing) extraClasses += 'closing-component ';
+        if (component.isComment) extraClasses += 'comment-component ';
+        if (component.isJavaScript) extraClasses += 'js-component ';
+        if (component.isCanvasComponent) extraClasses += 'canvas-component-type ';
         
         // Build component in canvas (temporarily without nesting level)
         canvasWeaver
@@ -1885,6 +2052,11 @@ weaver.clear()`;
                         })
                         .button('🗑️', () => this.deleteComponent(componentInstance.instanceId), 'delete-btn', '', {
                             title: 'Delete component'
+                        })
+                        .divStart('action-divider')
+                        .divEnd()
+                        .button('🔽', () => this.toggleComponentCollapse(componentInstance.instanceId), 'collapse-btn', '', {
+                            title: 'Collapse/Expand component'
                         })
                     .divEnd()
                 .divEnd()
@@ -1924,6 +2096,56 @@ weaver.clear()`;
         
         this.originalWeaver.toast(`${component.name} added to canvas!`, 'success', 2000);
     }
+
+    toggleComponentCollapse(instanceId) {
+        const component = document.querySelector(`[data-instance-id="${instanceId}"]`);
+        if (!component) return;
+        
+        const collapseBtn = component.querySelector('.collapse-btn');
+        const preview = component.querySelector('.component-preview');
+        
+        if (component.classList.contains('collapsed')) {
+            // Expand
+            component.classList.remove('collapsed');
+            collapseBtn.classList.remove('collapsed');
+            collapseBtn.textContent = '🔽';
+            collapseBtn.title = 'Collapse component';
+            this.originalWeaver.toast('Component expanded!', 'info', 1000);
+        } else {
+            // Collapse
+            component.classList.add('collapsed');
+            collapseBtn.classList.add('collapsed');
+            collapseBtn.textContent = '🔼';
+            collapseBtn.title = 'Expand component';
+            this.originalWeaver.toast('Component collapsed!', 'info', 1000);
+        }
+    }
+
+    /*resizeComponent(instanceId, size) {
+        const component = document.querySelector(`[data-instance-id="${instanceId}"]`);
+        if (!component) return;
+        
+        // Remove existing size classes
+        component.classList.remove('component-small', 'component-medium', 'component-large');
+        
+        // Apply new size
+        switch (size) {
+            case 'small':
+                component.style.height = '60px';
+                component.classList.add('component-small');
+                break;
+            case 'medium':
+                component.style.height = '120px';
+                component.classList.add('component-medium');
+                break;
+            case 'large':
+                component.style.height = '200px';
+                component.classList.add('component-large');
+                break;
+        }
+        
+        this.originalWeaver.toast(`Component resized to ${size}!`, 'info', 1500);
+    }*/
 
     calculateNestingLevel(dropTarget = null) {
         const canvas = document.querySelector('.editor-canvas');
