@@ -13,7 +13,7 @@ class DragDropEditor {
         this.draggedElement = null;
         this.currentStructure = [];
         this.editorContainer = null;
-        
+
         this.defineComponents();
         this.addEditorStyles();
         this.createEditorInterface();
@@ -43,6 +43,9 @@ class DragDropEditor {
                 background: #f8f9fa;
                 overflow-y: auto;
                 position: relative;
+                resize: horizontal;
+                min-width: 300px;
+                max-width: 80%;
             }
             
             .editor-canvas.drag-over {
@@ -52,81 +55,15 @@ class DragDropEditor {
             
             .component-panel {
                 width: 320px;
+                min-width: 250px;
+                max-width: 500px;
                 background: white;
                 border: 1px solid #dee2e6;
                 border-radius: 8px;
                 padding: 1rem;
                 overflow-y: auto;
                 max-height: 70vh;
-            }
-            
-            .component-tabs {
-                display: flex;
-                margin-bottom: 1rem;
-                border-bottom: 1px solid #dee2e6;
-                flex-wrap: wrap;
-                gap: 2px;
-            }
-            
-            .component-tab {
-                padding: 0.5rem 0.75rem;
-                border: none;
-                background: #f8f9fa;
-                border-radius: 4px 4px 0 0;
-                cursor: pointer;
-                font-size: 0.8rem;
-                font-weight: 500;
-                transition: all 0.2s;
-            }
-            
-            .component-tab:hover {
-                background: #e9ecef;
-            }
-            
-            .component-tab.active {
-                background: #0d6efd;
-                color: white;
-            }
-            
-            .component-category {
-                display: none;
-            }
-            
-            .component-category.active {
-                display: block;
-            }
-            
-            .category-title {
-                font-weight: bold;
-                font-size: 0.9rem;
-                color: #495057;
-                margin-bottom: 0.5rem;
-                padding: 0.25rem 0;
-            }
-            
-            .draggable-component {
-                background: white;
-                border: 1px solid #dee2e6;
-                border-radius: 6px;
-                padding: 0.75rem;
-                margin-bottom: 0.5rem;
-                cursor: grab;
-                transition: all 0.2s;
-                user-select: none;
-            }
-            
-            .draggable-component:hover {
-                border-color: #0d6efd;
-                transform: translateY(-1px);
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            
-            .draggable-component:active {
-                cursor: grabbing;
-            }
-            
-            .dragging {
-                opacity: 0.5;
+                resize: horizontal;
             }
             
             .canvas-component {
@@ -137,6 +74,10 @@ class DragDropEditor {
                 margin-bottom: 0.5rem;
                 position: relative;
                 cursor: pointer;
+                transition: all 0.2s;
+                resize: vertical;
+                min-height: 60px;
+                overflow: hidden;
             }
             
             .canvas-component:hover {
@@ -144,11 +85,155 @@ class DragDropEditor {
                 box-shadow: 0 2px 4px rgba(13, 110, 253, 0.1);
             }
             
+            .canvas-component.dragging {
+                opacity: 0.5;
+                transform: rotate(2deg);
+            }
+            
+            /* Component sizing controls */
+            .component-size-controls {
+                position: absolute;
+                top: 5px;
+                right: 40px;
+                display: none;
+                gap: 2px;
+                background: rgba(255,255,255,0.9);
+                border-radius: 4px;
+                padding: 2px;
+            }
+            
+            .canvas-component:hover .component-size-controls {
+                display: flex;
+            }
+            
+            .size-btn {
+                background: none;
+                border: 1px solid #dee2e6;
+                border-radius: 3px;
+                padding: 2px 4px;
+                font-size: 10px;
+                cursor: pointer;
+                color: #6c757d;
+            }
+            
+            .size-btn:hover {
+                background: #f8f9fa;
+                border-color: #0d6efd;
+                color: #0d6efd;
+            }
+            
+            /* Comment components styling */
+            .canvas-component.comment-component {
+                background: #fff3cd;
+                border-color: #ffc107;
+                font-style: italic;
+            }
+            
+            .canvas-component.comment-component .component-preview {
+                color: #856404;
+                font-size: 0.9rem;
+            }
+            
+            /* JavaScript components styling */
+            .canvas-component.js-component {
+                background: #e7f3ff;
+                border-color: #007bff;
+            }
+            
+            .canvas-component.js-component .component-preview {
+                font-family: 'Courier New', monospace;
+                font-size: 0.85rem;
+                background: #f8f9fa;
+                padding: 0.5rem;
+                border-radius: 4px;
+                border-left: 3px solid #007bff;
+                white-space: pre-wrap;
+                overflow-x: auto;
+            }
+            
+            /* Canvas components styling */
+            .canvas-component.canvas-component-type {
+                background: #f0f8ff;
+                border-color: #6f42c1;
+            }
+            
+            .canvas-component.canvas-component-type .component-preview {
+                border: 2px dashed #6f42c1;
+                border-radius: 4px;
+                min-height: 100px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
+                            linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
+                            linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
+                            linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
+                background-size: 10px 10px;
+                background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+            }
+            
+            /* Nesting levels with indentation */
+            .canvas-component[data-nesting-level="1"] {
+                margin-left: 2rem;
+                border-left: 3px solid #0d6efd;
+                background: rgba(13, 110, 253, 0.05);
+                padding: 0.5rem 0.75rem;
+                min-height: auto;
+            }
+            
+            .canvas-component[data-nesting-level="2"] {
+                margin-left: 4rem;
+                border-left: 3px solid #28a745;
+                background: rgba(40, 167, 69, 0.05);
+                padding: 0.4rem 0.75rem;
+                min-height: auto;
+            }
+            
+            .canvas-component[data-nesting-level="3"] {
+                margin-left: 6rem;
+                border-left: 3px solid #ffc107;
+                background: rgba(255, 193, 7, 0.05);
+                padding: 0.3rem 0.75rem;
+                min-height: auto;
+            }
+            
+            .canvas-component[data-nesting-level="4"] {
+                margin-left: 8rem;
+                border-left: 3px solid #dc3545;
+                background: rgba(220, 53, 69, 0.05);
+                padding: 0.25rem 0.75rem;
+                min-height: auto;
+            }
+            
+            .canvas-component[data-nesting-level="5"] {
+                margin-left: 10rem;
+                border-left: 3px solid #6f42c1;
+                background: rgba(111, 66, 193, 0.05);
+                padding: 0.2rem 0.75rem;
+                min-height: auto;
+            }
+            
+            /* Container components with nesting */
             .container-component {
                 border: 2px dashed #28a745;
                 background: rgba(40, 167, 69, 0.05);
                 min-height: 60px;
                 position: relative;
+            }
+            
+            .container-component[data-nesting-level="1"] {
+                border-color: #0d6efd;
+                background: rgba(13, 110, 253, 0.03);
+            }
+            
+            .container-component[data-nesting-level="2"] {
+                border-color: #28a745;
+                background: rgba(40, 167, 69, 0.03);
+            }
+            
+            .container-component[data-nesting-level="3"] {
+                border-color: #ffc107;
+                background: rgba(255, 193, 7, 0.03);
             }
             
             .container-component .component-preview {
@@ -170,6 +255,42 @@ class DragDropEditor {
                 pointer-events: none;
             }
             
+            /* Nested container helpers with different colors */
+            .container-component[data-nesting-level="1"] .container-helper {
+                color: #0d6efd;
+            }
+            
+            .container-component[data-nesting-level="2"] .container-helper {
+                color: #28a745;
+            }
+            
+            .container-component[data-nesting-level="3"] .container-helper {
+                color: #ffc107;
+            }
+            
+            /* Closing components with nesting */
+            .canvas-component.closing-component {
+                border-style: dashed;
+                background: rgba(220, 53, 69, 0.1);
+                font-size: 0.8rem;
+                padding: 0.4rem 0.75rem;
+            }
+            
+            .canvas-component.closing-component[data-nesting-level="1"] {
+                background: rgba(13, 110, 253, 0.1);
+                border-color: #0d6efd;
+            }
+            
+            .canvas-component.closing-component[data-nesting-level="2"] {
+                background: rgba(40, 167, 69, 0.1);
+                border-color: #28a745;
+            }
+            
+            .canvas-component.closing-component[data-nesting-level="3"] {
+                background: rgba(255, 193, 7, 0.1);
+                border-color: #ffc107;
+            }
+            
             .component-header {
                 display: flex;
                 justify-content: space-between;
@@ -179,14 +300,44 @@ class DragDropEditor {
                 border-bottom: 1px solid #f0f0f0;
             }
             
+            /* Smaller headers for nested components */
+            .canvas-component[data-nesting-level] .component-header {
+                margin-bottom: 0.25rem;
+                padding-bottom: 0.25rem;
+                font-size: 0.9rem;
+            }
+            
+            .canvas-component[data-nesting-level="2"] .component-header,
+            .canvas-component[data-nesting-level="3"] .component-header,
+            .canvas-component[data-nesting-level="4"] .component-header,
+            .canvas-component[data-nesting-level="5"] .component-header {
+                font-size: 0.8rem;
+            }
+            
+            .component-actions {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+            
             .component-actions button {
                 background: none;
                 border: none;
                 cursor: pointer;
                 padding: 0.25rem;
-                margin-left: 0.25rem;
                 border-radius: 3px;
                 font-size: 12px;
+                transition: all 0.2s;
+            }
+            
+            /* Smaller action buttons for nested components */
+            .canvas-component[data-nesting-level] .component-actions button {
+                padding: 0.15rem;
+                font-size: 10px;
+            }
+            
+            .component-actions button:hover {
+                background: rgba(0,0,0,0.1);
             }
             
             .edit-btn {
@@ -195,6 +346,17 @@ class DragDropEditor {
             
             .delete-btn {
                 color: #dc3545;
+            }
+            
+            .move-btn {
+                color: #6c757d;
+                cursor: move;
+            }
+            
+            .reorder-btn {
+                color: #6c757d;
+                padding: 0.125rem 0.25rem;
+                font-size: 10px;
             }
             
             .canvas-placeholder {
@@ -212,6 +374,18 @@ class DragDropEditor {
                 margin-right: 0.5rem;
             }
             
+            /* Smaller icons for nested components */
+            .canvas-component[data-nesting-level] .component-icon {
+                font-size: 1rem;
+            }
+            
+            .canvas-component[data-nesting-level="2"] .component-icon,
+            .canvas-component[data-nesting-level="3"] .component-icon,
+            .canvas-component[data-nesting-level="4"] .component-icon,
+            .canvas-component[data-nesting-level="5"] .component-icon {
+                font-size: 0.9rem;
+            }
+            
             .component-name {
                 font-weight: 600;
                 font-size: 0.875rem;
@@ -221,6 +395,50 @@ class DragDropEditor {
                 font-size: 0.75rem;
                 color: #6c757d;
                 margin-top: 0.25rem;
+            }
+            
+            /* Improved drop indicators */
+            .drop-indicator {
+                height: 3px;
+                background: #0d6efd;
+                border-radius: 2px;
+                margin: 0;
+                opacity: 0;
+                transition: opacity 0.2s ease;
+                position: absolute;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                pointer-events: none;
+            }
+            
+            .drop-indicator.active {
+                opacity: 1;
+            }
+            
+            .drop-indicator-before {
+                top: -2px;
+            }
+            
+            .drop-indicator-after {
+                bottom: -2px;
+            }
+            
+            .drop-indicator-end {
+                position: relative;
+                margin: 10px 0;
+                height: 3px;
+            }
+            
+            /* Component drag over state - subtle highlight */
+            .canvas-component.drag-target-before {
+                border-top: 2px solid #0d6efd;
+                margin-top: 2px;
+            }
+            
+            .canvas-component.drag-target-after {
+                border-bottom: 2px solid #0d6efd;
+                margin-bottom: 2px;
             }
             
             .style-form-group {
@@ -328,7 +546,18 @@ class DragDropEditor {
                 category: 'text',
                 styleOptions: ['fontSize', 'color', 'fontWeight', 'textDecoration']
             },
-            
+            {
+                id: 'htmlComment',
+                name: 'HTML Comment',
+                icon: '💬',
+                description: 'Add HTML comment',
+                method: 'comment',
+                params: ['text'],
+                defaultParams: ['HTML comment text'],
+                category: 'text',
+                isComment: true
+            },
+
             // Container Components
             {
                 id: 'divStart',
@@ -429,7 +658,7 @@ class DragDropEditor {
                 category: 'containers',
                 isClosing: true
             },
-            
+
             // Interactive Components
             {
                 id: 'button',
@@ -453,7 +682,7 @@ class DragDropEditor {
                 category: 'interactive',
                 styleOptions: ['color', 'textDecoration', 'fontSize', 'fontWeight']
             },
-            
+
             // Form Components
             {
                 id: 'input',
@@ -484,7 +713,7 @@ class DragDropEditor {
                 description: 'Dropdown selection',
                 method: 'select',
                 params: ['options', 'className', 'id', 'style'],
-                defaultParams: [JSON.stringify([{text: 'Option 1', value: '1'}, {text: 'Option 2', value: '2'}]), 'form-control', '', ''],
+                defaultParams: [JSON.stringify([{ text: 'Option 1', value: '1' }, { text: 'Option 2', value: '2' }]), 'form-control', '', ''],
                 category: 'forms',
                 styleOptions: ['width', 'padding', 'border', 'borderRadius', 'fontSize']
             },
@@ -499,7 +728,7 @@ class DragDropEditor {
                 category: 'forms',
                 styleOptions: ['fontSize', 'color']
             },
-            
+
             // Media Components
             {
                 id: 'image',
@@ -523,7 +752,7 @@ class DragDropEditor {
                 category: 'media',
                 styleOptions: ['width', 'height', 'borderRadius', 'border']
             },
-            
+
             // List Components
             {
                 id: 'listStart',
@@ -560,7 +789,7 @@ class DragDropEditor {
                 category: 'lists',
                 styleOptions: ['fontSize', 'color', 'padding', 'margin']
             },
-            
+
             // Navigation Components
             {
                 id: 'navStart',
@@ -597,7 +826,7 @@ class DragDropEditor {
                 category: 'navigation',
                 styleOptions: ['color', 'padding', 'fontSize', 'textDecoration']
             },
-            
+
             // Layout Components
             {
                 id: 'spacer',
@@ -630,6 +859,104 @@ class DragDropEditor {
                 params: [],
                 defaultParams: [],
                 category: 'layout'
+            },
+
+            // JavaScript Components
+            {
+                id: 'scriptStart',
+                name: 'Script Block',
+                icon: '⚡',
+                description: 'Start JavaScript code block',
+                method: 'scriptStart',
+                params: ['type'],
+                defaultParams: ['text/javascript'],
+                category: 'javascript',
+                isContainer: true,
+                needsClosing: true,
+                isJavaScript: true
+            },
+            {
+                id: 'scriptEnd',
+                name: 'Close Script',
+                icon: '⚡✕',
+                description: 'Closes script block',
+                method: 'scriptEnd',
+                params: [],
+                defaultParams: [],
+                category: 'javascript',
+                isClosing: true,
+                isJavaScript: true
+            },
+            {
+                id: 'jsComment',
+                name: 'JS Comment',
+                icon: '💭',
+                description: 'JavaScript comment',
+                method: 'jsComment',
+                params: ['text'],
+                defaultParams: ['JavaScript comment'],
+                category: 'javascript',
+                isComment: true,
+                isJavaScript: true
+            },
+            {
+                id: 'jsVariable',
+                name: 'Variable',
+                icon: '📦',
+                description: 'JavaScript variable declaration',
+                method: 'jsVariable',
+                params: ['type', 'name', 'value'],
+                defaultParams: ['const', 'myVariable', '"Hello World"'],
+                category: 'javascript',
+                isJavaScript: true
+            },
+            {
+                id: 'jsFunction',
+                name: 'Function',
+                icon: '⚙️',
+                description: 'JavaScript function',
+                method: 'jsFunction',
+                params: ['name', 'params', 'body'],
+                defaultParams: ['myFunction', '', 'console.log("Hello!");'],
+                category: 'javascript',
+                isJavaScript: true
+            },
+            {
+                id: 'jsEventListener',
+                name: 'Event Listener',
+                icon: '👂',
+                description: 'Add event listener',
+                method: 'jsEventListener',
+                params: ['selector', 'event', 'callback'],
+                defaultParams: ['#myButton', 'click', 'function() { alert("Clicked!"); }'],
+                category: 'javascript',
+                isJavaScript: true
+            },
+
+            // Canvas Components
+            {
+                id: 'canvas',
+                name: 'Canvas Element',
+                icon: '🎨',
+                description: 'HTML5 Canvas for drawing',
+                method: 'canvas',
+                params: ['width', 'height', 'className', 'id', 'style'],
+                defaultParams: ['400', '300', '', '', ''],
+                category: 'canvas',
+                isCanvasComponent: true,
+                styleOptions: ['border', 'borderRadius', 'margin']
+            },
+            {
+                id: 'canvasScript',
+                name: 'Canvas Script',
+                icon: '🖌️',
+                description: 'Canvas drawing script',
+                method: 'canvasScript',
+                params: ['canvasId', 'script'],
+                defaultParams: ['myCanvas', 'const ctx = canvas.getContext("2d");\nctx.fillStyle = "blue";\nctx.fillRect(10, 10, 100, 100);'],
+                category: 'canvas',
+                isCanvasComponent: true,
+                isJavaScript: true
             }
         ];
     }
@@ -638,34 +965,34 @@ class DragDropEditor {
         // Create main editor container using Web Weaver
         this.editorContainer = document.createElement('div');
         this.editorContainer.id = 'editor-' + Date.now();
-        
+
         // Append to DOM first before creating WebWeaver instance
         document.body.appendChild(this.editorContainer);
-        
+
         this.editorWeaver = new WebWeaver(this.editorContainer.id);
-        
+
         // Build the editor layout with Web Weaver
         this.editorWeaver
             .divStart('editor-layout')
-                // Canvas area
-                .divStart('editor-canvas', 'editor-canvas')
-                    .divStart('canvas-placeholder')
-                        .text('🎨 Drop components here to build your website', 'div')
-                        .paragraph('Drag components from the panel on the right to start building!')
-                    .divEnd()
-                .divEnd()
-                
-                // Component panel
-                .divStart('component-panel')
-                    .h3('Components')
-                    .paragraph('Drag these components to the canvas', 'text-muted')
-                    
-                    // Create category tabs
-                    .divStart('component-tabs');
-        
+            // Canvas area
+            .divStart('editor-canvas', 'editor-canvas')
+            .divStart('canvas-placeholder')
+            .text('🎨 Drop components here to build your website', 'div')
+            .paragraph('Drag components from the panel on the right to start building!')
+            .divEnd()
+            .divEnd()
+
+            // Component panel
+            .divStart('component-panel')
+            .h3('Components')
+            .paragraph('Drag these components to the canvas', 'text-muted')
+
+            // Create category tabs
+            .divStart('component-tabs');
+
         // Get unique categories
         const categories = [...new Set(this.components.map(c => c.category))];
-        
+
         // Add category tabs
         categories.forEach((category, index) => {
             this.editorWeaver.button(
@@ -675,13 +1002,13 @@ class DragDropEditor {
                 `tab-${category}`
             );
         });
-        
+
         this.editorWeaver.divEnd(); // End tabs
-        
+
         // Add component categories
         categories.forEach((category, index) => {
             this.editorWeaver.divStart(`component-category ${index === 0 ? 'active' : ''}`, `category-${category}`);
-            
+
             // Add components for this category
             this.components
                 .filter(component => component.category === category)
@@ -691,21 +1018,21 @@ class DragDropEditor {
                             draggable: 'true',
                             'data-component-id': component.id
                         })
-                            .flexContainer('flex items-center')
-                                .text(component.icon, 'span', 'component-icon')
-                                .text(component.name, 'span', 'component-name')
-                            .divEnd()
-                            .text(component.description, 'div', 'component-desc')
+                        .flexContainer('flex items-center')
+                        .text(component.icon, 'span', 'component-icon')
+                        .text(component.name, 'span', 'component-name')
+                        .divEnd()
+                        .text(component.description, 'div', 'component-desc')
                         .divEnd();
                 });
-            
+
             this.editorWeaver.divEnd(); // End category
         });
-        
+
         this.editorWeaver
             .divEnd() // End component panel
-        .divEnd(); // End editor layout
-        
+            .divEnd(); // End editor layout
+
         // Create the modal with the editor
         this.originalWeaver.createModal('🎨 Web Weaver Visual Editor', this.editorContainer, {
             id: 'drag-drop-editor',
@@ -762,7 +1089,7 @@ class DragDropEditor {
             tab.classList.remove('active');
         });
         document.getElementById(`tab-${category}`).classList.add('active');
-        
+
         // Update category visibility
         document.querySelectorAll('.component-category').forEach(cat => {
             cat.classList.remove('active');
@@ -772,52 +1099,52 @@ class DragDropEditor {
 
     addComponentPreview(weaver, componentInstance) {
         const component = componentInstance;
-        
+
         try {
             // Add container styling for container components
             if (component.isContainer && !component.isClosing) {
                 weaver.divStart('container-component preview-element', '', {
                     style: 'min-height: 50px; position: relative;'
                 });
-                
+
                 // Add helper text for containers
                 weaver.text(`${component.name} (Drop items here)`, 'div', 'container-helper');
-                
+
                 weaver.divEnd();
                 return;
             }
-            
+
             // Handle closing components
             if (component.isClosing) {
                 weaver.divStart('preview-element', '', {
                     style: 'border: 1px dashed #dc3545; padding: 0.5rem; text-align: center; color: #dc3545; background: rgba(220, 53, 69, 0.1);'
                 })
                     .text(`${component.name}`, 'small')
-                .divEnd();
+                    .divEnd();
                 return;
             }
-            
+
             // Create a preview of the component based on its type
             switch (component.method) {
                 case 'heading':
                     const level = componentInstance.defaultParams[0] || '1';
                     weaver[`h${level}`](componentInstance.defaultParams[1] || 'Heading Text', 'preview-element');
                     break;
-                    
+
                 case 'paragraph':
                     weaver.paragraph(componentInstance.defaultParams[0] || 'Paragraph text', 'preview-element');
                     break;
-                    
+
                 case 'text':
                     weaver.text(componentInstance.defaultParams[0] || 'Text content', 'span', 'preview-element');
                     break;
-                    
+
                 case 'button':
                     weaver.button(componentInstance.defaultParams[0] || 'Button', () => {
                         console.log('Preview button clicked');
                     }, 'btn preview-element');
                     break;
-                    
+
                 case 'image':
                     weaver.image(
                         componentInstance.defaultParams[0] || 'https://via.placeholder.com/150x100',
@@ -827,7 +1154,7 @@ class DragDropEditor {
                         { style: 'max-width: 150px; height: auto;' }
                     );
                     break;
-                    
+
                 case 'input':
                     weaver.input(
                         componentInstance.defaultParams[0] || 'text',
@@ -835,7 +1162,7 @@ class DragDropEditor {
                         'form-control preview-element'
                     );
                     break;
-                    
+
                 case 'textarea':
                     weaver.textarea(
                         componentInstance.defaultParams[0] || 'Enter your message...',
@@ -843,16 +1170,16 @@ class DragDropEditor {
                         'form-control preview-element'
                     );
                     break;
-                    
+
                 case 'select':
                     try {
                         const options = JSON.parse(componentInstance.defaultParams[0] || '[]');
                         weaver.select(options, 'form-control preview-element');
                     } catch (e) {
-                        weaver.select([{text: 'Option 1', value: '1'}], 'form-control preview-element');
+                        weaver.select([{ text: 'Option 1', value: '1' }], 'form-control preview-element');
                     }
                     break;
-                    
+
                 case 'checkbox':
                     weaver.checkbox(
                         componentInstance.defaultParams[0] || 'Check me',
@@ -860,7 +1187,7 @@ class DragDropEditor {
                         'checkbox preview-element'
                     );
                     break;
-                    
+
                 case 'navItem':
                     weaver.navItem(
                         componentInstance.defaultParams[0] || 'Link Text',
@@ -868,28 +1195,28 @@ class DragDropEditor {
                         'preview-element'
                     );
                     break;
-                    
+
                 case 'listItem':
                     weaver.listItem(componentInstance.defaultParams[0] || 'List item text', 'preview-element');
                     break;
-                    
+
                 case 'spacer':
                     weaver.divStart('preview-element', '', {
                         style: `height: ${componentInstance.defaultParams[0] || '2rem'}; background: repeating-linear-gradient(45deg, #f8f9fa, #f8f9fa 10px, #e9ecef 10px, #e9ecef 20px); border-radius: 4px; display: flex; align-items: center; justify-content: center;`
                     })
                         .text('Spacer', 'small', 'text-muted')
-                    .divEnd();
+                        .divEnd();
                     break;
-                    
+
                 case 'horizontalRule':
                     weaver.horizontalRule('preview-element');
                     break;
-                    
+
                 case 'lineBreak':
                     weaver.lineBreak();
                     weaver.text('Line Break', 'small', 'preview-element text-muted');
                     break;
-                    
+
                 default:
                     weaver.text(`${component.name} Component`, 'div', 'preview-element text-muted');
                     break;
@@ -905,31 +1232,31 @@ class DragDropEditor {
         const editContainer = document.createElement('div');
         editContainer.id = 'edit-' + Date.now();
         document.body.appendChild(editContainer);
-        
+
         const editWeaver = new WebWeaver(editContainer.id);
-        
+
         editWeaver
             .h3(`✏️ Edit ${componentInstance.name}`)
             .divStart('form-container');
-        
+
         // Create tabs for different edit sections
         if (componentInstance.styleOptions && componentInstance.styleOptions.length > 0) {
             editWeaver
                 .divStart('style-tabs')
-                    .button('Properties', () => this.switchEditTab('properties'), 'style-tab active', 'tab-properties')
-                    .button('Styling', () => this.switchEditTab('styling'), 'style-tab', 'tab-styling')
+                .button('Properties', () => this.switchEditTab('properties'), 'style-tab active', 'tab-properties')
+                .button('Styling', () => this.switchEditTab('styling'), 'style-tab', 'tab-styling')
                 .divEnd();
         }
-        
+
         // Properties section
         editWeaver.divStart('style-section active', 'section-properties');
-        
+
         // Create form fields for each parameter
         componentInstance.params.forEach((param, index) => {
             const currentValue = componentInstance.defaultParams[index] || '';
-            
+
             editWeaver.divStart('form-group', '', { style: 'margin-bottom: 1rem;' });
-            
+
             // Special handling for different parameter types
             if (param === 'onClick') {
                 editWeaver
@@ -942,29 +1269,29 @@ class DragDropEditor {
                 editWeaver
                     .text(`List Type:`, 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                     .divStart('radio-group')
-                        .input('radio', '', '', `param-${index}-unordered`, { 
-                            name: `listtype-${index}`, 
-                            value: 'false',
-                            checked: currentValue !== 'true'
-                        })
-                        .text('Unordered List (bullets)', 'label', '', '', { style: 'margin-left: 0.5rem; margin-right: 1rem;' })
-                        .input('radio', '', '', `param-${index}-ordered`, { 
-                            name: `listtype-${index}`, 
-                            value: 'true',
-                            checked: currentValue === 'true'
-                        })
-                        .text('Ordered List (numbers)', 'label', '', '', { style: 'margin-left: 0.5rem;' })
+                    .input('radio', '', '', `param-${index}-unordered`, {
+                        name: `listtype-${index}`,
+                        value: 'false',
+                        checked: currentValue !== 'true'
+                    })
+                    .text('Unordered List (bullets)', 'label', '', '', { style: 'margin-left: 0.5rem; margin-right: 1rem;' })
+                    .input('radio', '', '', `param-${index}-ordered`, {
+                        name: `listtype-${index}`,
+                        value: 'true',
+                        checked: currentValue === 'true'
+                    })
+                    .text('Ordered List (numbers)', 'label', '', '', { style: 'margin-left: 0.5rem;' })
                     .divEnd();
             } else if (param === 'level' && componentInstance.method === 'heading') {
                 editWeaver
                     .text(`${param}:`, 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                     .select([
-                        {text: 'H1', value: '1'},
-                        {text: 'H2', value: '2'},
-                        {text: 'H3', value: '3'},
-                        {text: 'H4', value: '4'},
-                        {text: 'H5', value: '5'},
-                        {text: 'H6', value: '6'}
+                        { text: 'H1', value: '1' },
+                        { text: 'H2', value: '2' },
+                        { text: 'H3', value: '3' },
+                        { text: 'H4', value: '4' },
+                        { text: 'H5', value: '5' },
+                        { text: 'H6', value: '6' }
                     ], 'form-control', `param-${index}`, {
                         value: currentValue
                     });
@@ -972,13 +1299,13 @@ class DragDropEditor {
                 editWeaver
                     .text(`${param}:`, 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                     .select([
-                        {text: 'Text', value: 'text'},
-                        {text: 'Email', value: 'email'},
-                        {text: 'Password', value: 'password'},
-                        {text: 'Number', value: 'number'},
-                        {text: 'Tel', value: 'tel'},
-                        {text: 'URL', value: 'url'},
-                        {text: 'Search', value: 'search'}
+                        { text: 'Text', value: 'text' },
+                        { text: 'Email', value: 'email' },
+                        { text: 'Password', value: 'password' },
+                        { text: 'Number', value: 'number' },
+                        { text: 'Tel', value: 'tel' },
+                        { text: 'URL', value: 'url' },
+                        { text: 'Search', value: 'search' }
                     ], 'form-control', `param-${index}`, {
                         value: currentValue
                     });
@@ -997,32 +1324,32 @@ class DragDropEditor {
                         style: 'width: 100%; padding: 0.5rem; border: 1px solid #dee2e6; border-radius: 4px;'
                     });
             }
-            
+
             editWeaver.divEnd(); // End form group
         });
-        
+
         editWeaver.divEnd(); // End properties section
-        
+
         // Styling section
         if (componentInstance.styleOptions && componentInstance.styleOptions.length > 0) {
             editWeaver.divStart('style-section', 'section-styling');
-            
+
             this.createStyleInputs(editWeaver, componentInstance);
-            
+
             editWeaver.divEnd(); // End styling section
         }
-        
+
         editWeaver
             .divEnd() // End form container
             .divStart('button-group', '', { style: 'margin-top: 1rem; display: flex; gap: 0.5rem;' })
-                .button('💾 Save Changes', () => {
-                    this.saveComponentChanges(componentInstance, editContainer);
-                }, 'btn')
-                .button('❌ Cancel', () => {
-                    this.originalWeaver.closeModal('edit-modal');
-                }, 'btn btn-secondary')
+            .button('💾 Save Changes', () => {
+                this.saveComponentChanges(componentInstance, editContainer);
+            }, 'btn')
+            .button('❌ Cancel', () => {
+                this.originalWeaver.closeModal('edit-modal');
+            }, 'btn btn-secondary')
             .divEnd();
-        
+
         this.originalWeaver.createModal(`Edit ${componentInstance.name}`, editContainer, {
             id: 'edit-modal',
             size: 'large',
@@ -1040,7 +1367,7 @@ class DragDropEditor {
             tab.classList.remove('active');
         });
         document.getElementById(`tab-${tabName}`).classList.add('active');
-        
+
         // Update section visibility
         document.querySelectorAll('.style-section').forEach(section => {
             section.classList.remove('active');
@@ -1050,80 +1377,80 @@ class DragDropEditor {
 
     createStyleInputs(weaver, componentInstance) {
         const currentStyle = this.parseStyleString(componentInstance.defaultParams[componentInstance.params.indexOf('style')] || '');
-        
+
         componentInstance.styleOptions.forEach(styleOption => {
             weaver.divStart('style-form-group');
-            
-            switch(styleOption) {
+
+            switch (styleOption) {
                 case 'fontSize':
                     weaver
                         .text('Font Size:', 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .divStart('style-form-row')
-                            .input('text', '16px', '', 'style-fontSize', { value: currentStyle.fontSize || '' })
+                        .input('text', '16px', '', 'style-fontSize', { value: currentStyle.fontSize || '' })
                         .divEnd();
                     break;
-                    
+
                 case 'color':
                     weaver
                         .text('Text Color:', 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .divStart('style-form-row')
-                            .input('color', '', '', 'style-color', { value: currentStyle.color || '#000000' })
-                            .input('text', '#000000', '', 'style-color-text', { value: currentStyle.color || '' })
+                        .input('color', '', '', 'style-color', { value: currentStyle.color || '#000000' })
+                        .input('text', '#000000', '', 'style-color-text', { value: currentStyle.color || '' })
                         .divEnd();
                     break;
-                    
+
                 case 'backgroundColor':
                     weaver
                         .text('Background Color:', 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .divStart('style-form-row')
-                            .input('color', '', '', 'style-backgroundColor', { value: currentStyle.backgroundColor || '#ffffff' })
-                            .input('text', 'transparent', '', 'style-backgroundColor-text', { value: currentStyle.backgroundColor || '' })
+                        .input('color', '', '', 'style-backgroundColor', { value: currentStyle.backgroundColor || '#ffffff' })
+                        .input('text', 'transparent', '', 'style-backgroundColor-text', { value: currentStyle.backgroundColor || '' })
                         .divEnd();
                     break;
-                    
+
                 case 'padding':
                     weaver
                         .text('Padding:', 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .input('text', '10px', '', 'style-padding', { value: currentStyle.padding || '' });
                     break;
-                    
+
                 case 'margin':
                     weaver
                         .text('Margin:', 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .input('text', '10px', '', 'style-margin', { value: currentStyle.margin || '' });
                     break;
-                    
+
                 case 'border':
                     weaver
                         .text('Border:', 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .input('text', '1px solid #ccc', '', 'style-border', { value: currentStyle.border || '' });
                     break;
-                    
+
                 case 'borderRadius':
                     weaver
                         .text('Border Radius:', 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .input('text', '4px', '', 'style-borderRadius', { value: currentStyle.borderRadius || '' });
                     break;
-                    
+
                 case 'width':
                     weaver
                         .text('Width:', 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .input('text', '100%', '', 'style-width', { value: currentStyle.width || '' });
                     break;
-                    
+
                 case 'height':
                     weaver
                         .text('Height:', 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .input('text', 'auto', '', 'style-height', { value: currentStyle.height || '' });
                     break;
-                    
+
                 default:
                     weaver
                         .text(`${styleOption}:`, 'label', '', '', { style: 'display: block; font-weight: 600; margin-bottom: 0.5rem;' })
                         .input('text', '', '', `style-${styleOption}`, { value: currentStyle[styleOption] || '' });
                     break;
             }
-            
+
             weaver.divEnd(); // End style form group
         });
     }
@@ -1131,7 +1458,7 @@ class DragDropEditor {
     parseStyleString(styleString) {
         const styles = {};
         if (!styleString) return styles;
-        
+
         styleString.split(';').forEach(declaration => {
             const [property, value] = declaration.split(':').map(s => s.trim());
             if (property && value) {
@@ -1140,7 +1467,7 @@ class DragDropEditor {
                 styles[camelProperty] = value;
             }
         });
-        
+
         return styles;
     }
 
@@ -1157,17 +1484,17 @@ class DragDropEditor {
                 }
             }
         });
-        
+
         // Collect style values if component has style options
         if (componentInstance.styleOptions && componentInstance.styleOptions.length > 0) {
             const styleIndex = componentInstance.params.indexOf('style');
             if (styleIndex !== -1) {
                 const styles = [];
-                
+
                 componentInstance.styleOptions.forEach(styleOption => {
                     const styleInput = editContainer.querySelector(`#style-${styleOption}`);
                     const textInput = editContainer.querySelector(`#style-${styleOption}-text`);
-                    
+
                     if (styleInput && styleInput.value) {
                         const value = textInput ? textInput.value : styleInput.value;
                         if (value) {
@@ -1177,29 +1504,29 @@ class DragDropEditor {
                         }
                     }
                 });
-                
+
                 componentInstance.defaultParams[styleIndex] = styles.join('; ');
             }
         }
-        
+
         // Update the component instance stored on the DOM element
         const canvasComponent = document.querySelector(`[data-instance-id="${componentInstance.instanceId}"]`);
         if (canvasComponent) {
             canvasComponent._componentInstance = componentInstance;
-            
+
             const previewContainer = canvasComponent.querySelector('.component-preview');
             if (previewContainer) {
                 // Clear and rebuild preview
                 previewContainer.innerHTML = '';
-                
+
                 // Create temporary weaver for the preview
                 const tempContainer = document.createElement('div');
                 tempContainer.id = 'temp-preview-' + Date.now();
                 document.body.appendChild(tempContainer);
-                
+
                 const tempWeaver = new WebWeaver(tempContainer.id);
                 this.addComponentPreview(tempWeaver, componentInstance);
-                
+
                 // Move the preview content
                 while (tempContainer.firstChild) {
                     previewContainer.appendChild(tempContainer.firstChild);
@@ -1207,13 +1534,13 @@ class DragDropEditor {
                 document.body.removeChild(tempContainer);
             }
         }
-        
+
         this.updateStructure();
         this.originalWeaver.closeModal('edit-modal');
         this.originalWeaver.toast('Component updated successfully!', 'success', 2000);
     }
 
-   generateCode() {
+    generateCode() {
         if (this.currentStructure.length === 0) {
             this.originalWeaver.toast('Add some components to the canvas first!', 'warning', 3000);
             return;
@@ -1223,9 +1550,9 @@ class DragDropEditor {
         const codeContainer = document.createElement('div');
         codeContainer.id = 'code-' + Date.now();
         document.body.appendChild(codeContainer);
-        
+
         const codeWeaver = new WebWeaver(codeContainer.id);
-        
+
         let code = `// Generated Web Weaver App
 // Save this as app.js and include it in your HTML
 
@@ -1234,17 +1561,17 @@ const weaver = new WebWeaver('app-container');
 
 // Clear any existing content and start building
 weaver.clear()`;
-        
+
         this.currentStructure.forEach(item => {
             const { component, params } = item;
             if (!component) return;
-            
+
             // Handle different component types
             if (component.isClosing) {
                 code += `\n    .${component.method}()`;
             } else if (component.method === 'button') {
-                const clickHandler = params[1] && params[1].trim() !== '' 
-                    ? params[1] 
+                const clickHandler = params[1] && params[1].trim() !== ''
+                    ? params[1]
                     : '() => { console.log("Button clicked!"); }';
                 code += `\n    .${component.method}('${params[0] || 'Button'}', ${clickHandler}, '${params[2] || 'btn'}'${params[3] ? `, '${params[3]}'` : ''}${params[4] ? `, { style: '${params[4]}' }` : ''})`;
             } else if (component.method === 'heading') {
@@ -1253,7 +1580,7 @@ weaver.clear()`;
                 const className = params[2] || '';
                 const id = params[3] || '';
                 const style = params[4] || '';
-                
+
                 code += `\n    .h${level}('${text}'${className ? `, '${className}'` : ''}${id ? `, '${id}'` : ''}${style ? `, { style: '${style}' }` : ''})`;
             } else {
                 const formattedParams = params.map((p, index) => {
@@ -1266,12 +1593,12 @@ weaver.clear()`;
                     }
                     return p;
                 });
-                
+
                 // Filter out empty parameters from the end
                 while (formattedParams.length > 0 && (formattedParams[formattedParams.length - 1] === "''" || formattedParams[formattedParams.length - 1] === '{}')) {
                     formattedParams.pop();
                 }
-                
+
                 if (formattedParams.length > 0) {
                     code += `\n    .${component.method}(${formattedParams.join(', ')})`;
                 } else {
@@ -1279,31 +1606,31 @@ weaver.clear()`;
                 }
             }
         });
-        
+
         code += `;\n\n// Optional: Save the current state
 // weaver.saveData('myWebsite', weaver.getCurrentHTML());`;
-        
+
         codeWeaver
             .h3('📋 Generated Web Weaver App')
             .paragraph('This code will recreate your website. Save it as app.js:')
             .divStart('', '', {
                 style: 'background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 1rem; font-family: monospace; white-space: pre-wrap; overflow-x: auto; margin: 1rem 0; font-size: 0.875rem; max-height: 400px; overflow-y: auto;'
             })
-                .text(code, 'code')
+            .text(code, 'code')
             .divEnd()
             .flexContainer('flex gap-2')
-                .button('📋 Copy Code', () => {
-                    navigator.clipboard.writeText(code).then(() => {
-                        this.originalWeaver.toast('Code copied to clipboard!', 'success', 2000);
-                    }).catch(() => {
-                        this.originalWeaver.toast('Failed to copy code', 'error', 2000);
-                    });
-                }, 'btn')
-                .button('💾 Download app.js', () => {
-                    this.downloadCode(code, 'app.js');
-                }, 'btn btn-secondary')
+            .button('📋 Copy Code', () => {
+                navigator.clipboard.writeText(code).then(() => {
+                    this.originalWeaver.toast('Code copied to clipboard!', 'success', 2000);
+                }).catch(() => {
+                    this.originalWeaver.toast('Failed to copy code', 'error', 2000);
+                });
+            }, 'btn')
+            .button('💾 Download app.js', () => {
+                this.downloadCode(code, 'app.js');
+            }, 'btn btn-secondary')
             .divEnd();
-        
+
         this.originalWeaver.createModal('💾 Generated Code', codeContainer, {
             id: 'code-modal',
             size: 'large',
@@ -1316,7 +1643,7 @@ weaver.clear()`;
     }
 
     // Download generated code as file
-   downloadCode(code, filename) {
+    downloadCode(code, filename) {
         const blob = new Blob([code], { type: 'text/javascript' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1326,32 +1653,32 @@ weaver.clear()`;
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+
         this.originalWeaver.toast('File downloaded!', 'success', 2000);
     }
 
-   clearCanvas() {
-        const canvas = document.querySelector('#editor-canvas');
+    clearCanvas() {
+        const canvas = document.querySelector('.editor-canvas');
         if (!canvas) return;
-        
+
         canvas.innerHTML = '';
-        
+
         // Add placeholder back
         const placeholderContainer = document.createElement('div');
         placeholderContainer.id = 'placeholder-clear-' + Date.now();
         document.body.appendChild(placeholderContainer);
-        
+
         const placeholderWeaver = new WebWeaver(placeholderContainer.id);
-        
+
         placeholderWeaver
             .divStart('canvas-placeholder')
-                .text('🎨 Drop components here to build your website', 'div')
-                .paragraph('Drag components from the panel on the right to start building!')
+            .text('🎨 Drop components here to build your website', 'div')
+            .paragraph('Drag components from the panel on the right to start building!')
             .divEnd();
-        
+
         canvas.appendChild(placeholderContainer.firstChild);
         document.body.removeChild(placeholderContainer);
-        
+
         this.currentStructure = [];
         this.originalWeaver.toast('Canvas cleared successfully!', 'info', 2000);
     }
@@ -1359,61 +1686,48 @@ weaver.clear()`;
     setupDragAndDrop() {
         setTimeout(() => {
             this.detectAndApplyCurrentTheme();
-            
+
             const canvas = document.querySelector('.editor-canvas');
             const draggableComponents = document.querySelectorAll('.draggable-component');
-            
+
             if (!canvas) {
                 console.error('Canvas not found');
                 return;
             }
-            
-            // Set up drag events for components
+
+            // Set up drag events for draggable components from panel
             draggableComponents.forEach(component => {
                 component.addEventListener('dragstart', (e) => {
-                    const componentId = e.target.getAttribute('data-component-id');
+                    const componentId = e.target.closest('.draggable-component').getAttribute('data-component-id');
                     this.draggedElement = this.components.find(c => c.id === componentId);
+                    this.draggedFrom = 'panel';
                     e.target.classList.add('dragging');
                 });
-                
+
                 component.addEventListener('dragend', (e) => {
                     e.target.classList.remove('dragging');
                     this.draggedElement = null;
+                    this.draggedFrom = null;
                 });
             });
-            
-            // Set up drop zone
-            canvas.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                canvas.classList.add('drag-over');
-            });
-            
-            canvas.addEventListener('dragleave', (e) => {
-                if (!canvas.contains(e.relatedTarget)) {
-                    canvas.classList.remove('drag-over');
-                }
-            });
-            
-            canvas.addEventListener('drop', (e) => {
-                e.preventDefault();
-                canvas.classList.remove('drag-over');
-                
-                if (this.draggedElement) {
-                    this.addComponentToCanvas(this.draggedElement);
-                }
-            });
+
+            // Set up canvas drag and drop
+            this.setupCanvasDragDrop(canvas);
+
+            // Set up existing canvas components for reordering
+            this.setupCanvasComponentDragDrop();
         }, 100);
     }
 
     detectAndApplyCurrentTheme() {
         // Get the current theme from the original weaver
         const currentTheme = this.originalWeaver.getCurrentTheme();
-        
+
         // Apply the same theme to the editor weaver
         if (this.editorWeaver && currentTheme) {
             this.editorWeaver.setTheme(currentTheme);
         }
-        
+
         // Also apply to the modal container
         const modal = document.querySelector('[data-modal-id="drag-drop-editor"]');
         if (modal) {
@@ -1421,7 +1735,107 @@ weaver.clear()`;
         }
     }
 
-    addComponentToCanvas(component) {
+    setupCanvasDragDrop(canvas) {
+        canvas.addEventListener('dragover', (e) => {
+            e.preventDefault();
+
+            if (this.draggedElement) {
+                // Clear previous highlights
+                canvas.querySelectorAll('.canvas-component').forEach(comp => {
+                    comp.classList.remove('drag-target-before', 'drag-target-after');
+                });
+
+                // Find the closest component to insert before/after
+                const dropTarget = this.getDropTarget(canvas, e.clientX, e.clientY);
+
+                if (dropTarget.component) {
+                    if (dropTarget.position === 'before') {
+                        dropTarget.component.classList.add('drag-target-before');
+                    } else {
+                        dropTarget.component.classList.add('drag-target-after');
+                    }
+                } else {
+                    // No specific target, show end indicator
+                    this.showEndDropIndicator(canvas);
+                }
+
+                canvas.classList.add('drag-over');
+            }
+        });
+
+        canvas.addEventListener('dragleave', (e) => {
+            if (!canvas.contains(e.relatedTarget)) {
+                canvas.classList.remove('drag-over');
+                // Clear all drag highlights
+                canvas.querySelectorAll('.canvas-component').forEach(comp => {
+                    comp.classList.remove('drag-target-before', 'drag-target-after');
+                });
+                this.hideAllDropIndicators(canvas);
+            }
+        });
+
+        canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            canvas.classList.remove('drag-over');
+
+            // Clear all drag highlights
+            canvas.querySelectorAll('.canvas-component').forEach(comp => {
+                comp.classList.remove('drag-target-before', 'drag-target-after');
+            });
+            this.hideAllDropIndicators(canvas);
+
+            if (this.draggedElement) {
+                const dropTarget = this.getDropTarget(canvas, e.clientX, e.clientY);
+
+                if (this.draggedFrom === 'panel') {
+                    // Adding new component
+                    this.addComponentToCanvas(this.draggedElement, dropTarget);
+                } else if (this.draggedFrom === 'canvas') {
+                    // Reordering existing component
+                    this.reorderComponent(this.draggedElement, dropTarget);
+                }
+            }
+        });
+    }
+
+    setupCanvasComponentDragDrop() {
+        const canvasComponents = document.querySelectorAll('.canvas-component');
+
+        canvasComponents.forEach(component => {
+            // Make canvas components draggable
+            component.draggable = true;
+
+            component.addEventListener('dragstart', (e) => {
+                this.draggedElement = component;
+                this.draggedFrom = 'canvas';
+                component.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            component.addEventListener('dragend', (e) => {
+                component.classList.remove('dragging');
+                this.draggedElement = null;
+                this.draggedFrom = null;
+            });
+        });
+    }
+
+    getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.canvas-component:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    addComponentToCanvas(component, dropTarget = null) {
         const canvas = document.querySelector('.editor-canvas');
         if (!canvas) return;
         
@@ -1445,14 +1859,27 @@ weaver.clear()`;
         
         const canvasWeaver = new WebWeaver(canvasComponentContainer.id);
         
-        // Build component in canvas
+        // Add special class for closing components
+        const extraClasses = component.isClosing ? 'closing-component' : '';
+        
+        // Build component in canvas (temporarily without nesting level)
         canvasWeaver
-            .divStart('canvas-component', '', {
-                'data-instance-id': componentInstance.instanceId
+            .divStart(`canvas-component ${extraClasses}`, '', {
+                'data-instance-id': componentInstance.instanceId,
+                draggable: 'true'
             })
                 .divStart('component-header')
                     .text(`${componentInstance.icon} ${componentInstance.name}`, 'span', 'component-title')
                     .divStart('component-actions')
+                        .button('⬆️', () => this.moveComponent(componentInstance.instanceId, 'up'), 'reorder-btn', '', {
+                            title: 'Move up'
+                        })
+                        .button('⬇️', () => this.moveComponent(componentInstance.instanceId, 'down'), 'reorder-btn', '', {
+                            title: 'Move down'
+                        })
+                        .button('⋮⋮', null, 'move-btn', '', {
+                            title: 'Drag to reorder'
+                        })
                         .button('✏️', () => this.editComponent(componentInstance), 'edit-btn', '', {
                             title: 'Edit component'
                         })
@@ -1471,10 +1898,26 @@ weaver.clear()`;
         // Move to canvas and store component instance
         const componentElement = canvasComponentContainer.firstChild;
         componentElement._componentInstance = componentInstance;
-        canvas.appendChild(componentElement);
+        
+        // Insert at the correct position based on drop target
+        if (dropTarget && dropTarget.component) {
+            if (dropTarget.position === 'before') {
+                canvas.insertBefore(componentElement, dropTarget.component);
+            } else {
+                canvas.insertBefore(componentElement, dropTarget.component.nextSibling);
+            }
+        } else {
+            canvas.appendChild(componentElement);
+        }
         
         // Clean up temporary container
         document.body.removeChild(canvasComponentContainer);
+        
+        // Set up drag events for the new component
+        this.setupSingleComponentDragDrop(componentElement);
+        
+        // Update nesting levels for all components AFTER insertion
+        this.updateNestingLevels();
         
         // Update structure
         this.updateStructure();
@@ -1482,30 +1925,234 @@ weaver.clear()`;
         this.originalWeaver.toast(`${component.name} added to canvas!`, 'success', 2000);
     }
 
+    calculateNestingLevel(dropTarget = null) {
+        const canvas = document.querySelector('.editor-canvas');
+        if (!canvas) return 0;
+        
+        const allComponents = [...canvas.querySelectorAll('.canvas-component')];
+        
+        let insertIndex = allComponents.length; // Default to end
+        
+        if (dropTarget && dropTarget.component) {
+            insertIndex = allComponents.indexOf(dropTarget.component);
+            if (dropTarget.position === 'after') {
+                insertIndex++;
+            }
+        }
+        
+        // Calculate nesting level by simulating the container stack up to insertion point
+        let nestingLevel = 0;
+        const containerStack = [];
+        
+        for (let i = 0; i < insertIndex; i++) {
+            const comp = allComponents[i];
+            const instance = comp._componentInstance;
+            if (!instance) continue;
+            
+            if (instance.isContainer && !instance.isClosing) {
+                // Opening container
+                containerStack.push(instance);
+                nestingLevel = containerStack.length;
+            } else if (instance.isClosing) {
+                // Closing container
+                if (containerStack.length > 0) {
+                    containerStack.pop();
+                }
+                nestingLevel = containerStack.length;
+            }
+        }
+        
+        return nestingLevel;
+    }
+
+    updateNestingLevels() {
+        const canvas = document.querySelector('.editor-canvas');
+        if (!canvas) return;
+        
+        const allComponents = [...canvas.querySelectorAll('.canvas-component')];
+        
+        let currentNestingLevel = 0;
+        const containerStack = [];
+        
+        allComponents.forEach((comp, index) => {
+            const instance = comp._componentInstance;
+            if (!instance) return;
+            
+            if (instance.isContainer && !instance.isClosing) {
+                // Opening container - set its level to current, then increase for contents
+                comp.setAttribute('data-nesting-level', currentNestingLevel);
+                containerStack.push({
+                    component: instance,
+                    level: currentNestingLevel
+                });
+                currentNestingLevel++;
+            } else if (instance.isClosing) {
+                // Closing container - decrease level first, then set
+                if (containerStack.length > 0) {
+                    currentNestingLevel--;
+                    containerStack.pop();
+                }
+                comp.setAttribute('data-nesting-level', currentNestingLevel);
+            } else {
+                // Regular component - use current nesting level
+                comp.setAttribute('data-nesting-level', currentNestingLevel);
+            }
+            
+            // Debug logging
+            console.log(`Component ${instance.name} at index ${index}: nesting level ${comp.getAttribute('data-nesting-level')}, stack depth: ${containerStack.length}`);
+        });
+    }
+
+    showEndDropIndicator(canvas) {
+        let indicator = canvas.querySelector('.drop-indicator-end');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'drop-indicator drop-indicator-end active';
+            canvas.appendChild(indicator);
+        } else {
+            indicator.classList.add('active');
+        }
+    }
+
+    hideAllDropIndicators(canvas) {
+        canvas.querySelectorAll('.drop-indicator').forEach(indicator => {
+            indicator.classList.remove('active');
+        });
+    }
+
+    getDropTarget(container, x, y) {
+        const components = [...container.querySelectorAll('.canvas-component:not(.dragging)')];
+
+        if (components.length === 0) {
+            return { component: null, position: 'end' };
+        }
+
+        for (let component of components) {
+            const rect = component.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+
+            // Adjust coordinates relative to container
+            const relativeY = y - containerRect.top + container.scrollTop;
+            const componentTop = rect.top - containerRect.top + container.scrollTop;
+            const componentBottom = componentTop + rect.height;
+            const componentMiddle = componentTop + (rect.height / 2);
+
+            if (relativeY >= componentTop && relativeY <= componentBottom) {
+                // Determine if we should insert before or after
+                if (relativeY < componentMiddle) {
+                    return { component: component, position: 'before' };
+                } else {
+                    return { component: component, position: 'after' };
+                }
+            }
+        }
+
+        // If we're below all components, insert at end
+        const lastComponent = components[components.length - 1];
+        const lastRect = lastComponent.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const relativeY = y - containerRect.top + container.scrollTop;
+        const lastComponentBottom = lastRect.bottom - containerRect.top + container.scrollTop;
+
+        if (relativeY > lastComponentBottom) {
+            return { component: null, position: 'end' };
+        }
+
+        // Default to inserting before first component
+        return { component: components[0], position: 'before' };
+    }
+
+    setupSingleComponentDragDrop(component) {
+        component.addEventListener('dragstart', (e) => {
+            this.draggedElement = component;
+            this.draggedFrom = 'canvas';
+            component.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        component.addEventListener('dragend', (e) => {
+            component.classList.remove('dragging');
+            this.draggedElement = null;
+            this.draggedFrom = null;
+        });
+    }
+
+    reorderComponent(draggedComponent, dropTarget) {
+        const canvas = document.querySelector('.editor-canvas');
+        if (!canvas || !draggedComponent) return;
+
+        // Don't do anything if dropping on itself
+        if (dropTarget && dropTarget.component === draggedComponent) {
+            return;
+        }
+
+        // Insert at the correct position based on drop target
+        if (dropTarget && dropTarget.component) {
+            if (dropTarget.position === 'before') {
+                canvas.insertBefore(draggedComponent, dropTarget.component);
+            } else {
+                canvas.insertBefore(draggedComponent, dropTarget.component.nextSibling);
+            }
+        } else {
+            canvas.appendChild(draggedComponent);
+        }
+
+        // Update nesting levels after reordering
+        this.updateNestingLevels();
+
+        this.updateStructure();
+        this.originalWeaver.toast('Component reordered!', 'info', 1500);
+    }
+
+    moveComponent(instanceId, direction) {
+        const component = document.querySelector(`[data-instance-id="${instanceId}"]`);
+        if (!component) return;
+
+        const canvas = document.querySelector('.editor-canvas');
+        const allComponents = [...canvas.querySelectorAll('.canvas-component')];
+        const currentIndex = allComponents.indexOf(component);
+
+        if (direction === 'up' && currentIndex > 0) {
+            // Move up (insert before previous sibling)
+            const previousComponent = allComponents[currentIndex - 1];
+            canvas.insertBefore(component, previousComponent);
+            this.updateNestingLevels();
+            this.updateStructure();
+            this.originalWeaver.toast('Component moved up!', 'info', 1500);
+        } else if (direction === 'down' && currentIndex < allComponents.length - 1) {
+            // Move down (insert after next sibling)
+            const nextComponent = allComponents[currentIndex + 1];
+            canvas.insertBefore(component, nextComponent.nextSibling);
+            this.updateNestingLevels();
+            this.updateStructure();
+            this.originalWeaver.toast('Component moved down!', 'info', 1500);
+        }
+    }
+
     deleteComponent(instanceId) {
         const componentElement = document.querySelector(`[data-instance-id="${instanceId}"]`);
         if (componentElement) {
             componentElement.remove();
             this.updateStructure();
-            
+
             // Add placeholder back if canvas is empty
             const canvas = document.querySelector('.editor-canvas');
             if (canvas && canvas.children.length === 0) {
                 const placeholderContainer = document.createElement('div');
                 placeholderContainer.id = 'placeholder-' + Date.now();
                 document.body.appendChild(placeholderContainer);
-                
+
                 const placeholderWeaver = new WebWeaver(placeholderContainer.id);
                 placeholderWeaver
                     .divStart('canvas-placeholder')
-                        .text('🎨 Drop components here to build your website', 'div')
-                        .paragraph('Drag components from the panel on the right to start building!')
+                    .text('🎨 Drop components here to build your website', 'div')
+                    .paragraph('Drag components from the panel on the right to start building!')
                     .divEnd();
-                
+
                 canvas.appendChild(placeholderContainer.firstChild);
                 document.body.removeChild(placeholderContainer);
             }
-            
+
             this.originalWeaver.toast('Component deleted!', 'info', 2000);
         }
     }
@@ -1513,7 +2160,7 @@ weaver.clear()`;
     updateStructure() {
         this.currentStructure = [];
         const canvasComponents = document.querySelectorAll('.canvas-component');
-        
+
         canvasComponents.forEach(element => {
             const componentInstance = element._componentInstance;
             if (componentInstance) {
@@ -1523,6 +2170,13 @@ weaver.clear()`;
                 });
             }
         });
+
+        // Clean up any orphaned drop indicators
+        document.querySelectorAll('.drop-indicator').forEach(indicator => {
+            if (!indicator.classList.contains('active')) {
+                indicator.remove();
+            }
+        });
     }
 
     previewWebsite() {
@@ -1530,27 +2184,27 @@ weaver.clear()`;
             this.originalWeaver.toast('Add some components to the canvas first!', 'warning', 3000);
             return;
         }
-        
+
         // Create preview container
         const previewContainer = document.createElement('div');
         previewContainer.id = 'preview-' + Date.now();
         document.body.appendChild(previewContainer);
-        
+
         this.previewWeaver = new WebWeaver(previewContainer.id);
-        
+
         // Apply current theme to preview
         const currentTheme = this.originalWeaver.getCurrentTheme();
         if (currentTheme) {
             this.previewWeaver.setTheme(currentTheme);
         }
-        
+
         // Build the preview
         this.previewWeaver.clear();
-        
+
         this.currentStructure.forEach(item => {
             const { component, params } = item;
             if (!component) return;
-            
+
             try {
                 if (component.isClosing) {
                     this.previewWeaver[component.method]();
@@ -1562,8 +2216,8 @@ weaver.clear()`;
                             this.previewWeaver[`h${level}`](params[1] || 'Heading', params[2] || '', params[3] || '', params[4] ? { style: params[4] } : {});
                             break;
                         case 'button':
-                            const clickHandler = params[1] && params[1].trim() !== '' 
-                                ? new Function('return ' + params[1])() 
+                            const clickHandler = params[1] && params[1].trim() !== ''
+                                ? new Function('return ' + params[1])()
                                 : () => { console.log('Button clicked!'); };
                             this.previewWeaver.button(params[0] || 'Button', clickHandler, params[2] || 'btn', params[3] || '', params[4] ? { style: params[4] } : {});
                             break;
@@ -1577,12 +2231,12 @@ weaver.clear()`;
                                     methodParams.push(params[index] || '');
                                 }
                             });
-                            
+
                             // Filter out empty parameters from the end
                             while (methodParams.length > 0 && (methodParams[methodParams.length - 1] === '' || (typeof methodParams[methodParams.length - 1] === 'object' && Object.keys(methodParams[methodParams.length - 1]).length === 0))) {
                                 methodParams.pop();
                             }
-                            
+
                             this.previewWeaver[component.method](...methodParams);
                             break;
                     }
@@ -1591,7 +2245,7 @@ weaver.clear()`;
                 console.error('Error rendering component in preview:', error);
             }
         });
-        
+
         this.originalWeaver.createModal('👁️ Website Preview', previewContainer, {
             id: 'preview-modal',
             size: 'large',
