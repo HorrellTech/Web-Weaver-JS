@@ -2,6 +2,7 @@
 
 A powerful, intuitive JavaScript library for building websites programmatically using simple method chaining. Create beautiful, responsive websites with minimal code and maximum flexibility.
 
+Website:
 https://horrelltech.github.io/Web-Weaver-JS/
 
 ## ✨ Features

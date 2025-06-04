@@ -366,6 +366,18 @@ class WebWeaver {
         return this.heading(3, text, className, id, attributes);
     }
 
+    h4(text, className = '', id = '', attributes = {}) {
+        return this.heading(4, text, className, id, attributes);
+    }
+
+    h5(text, className = '', id = '', attributes = {}) {
+        return this.heading(5, text, className, id, attributes);
+    }
+
+    h6(text, className = '', id = '', attributes = {}) {
+        return this.heading(6, text, className, id, attributes);
+    }
+
     paragraph(text, className = '', id = '', attributes = {}) {
         const p = document.createElement('p');
         p.textContent = text;
@@ -435,6 +447,28 @@ class WebWeaver {
     }
 
     formEnd() {
+        return this.divEnd();
+    }
+
+    // Footer Elements (add after navigation methods)
+    footerStart(className = 'footer', id = '', attributes = {}) {
+        const footer = document.createElement('footer');
+        footer.className = className;
+        if (id) footer.id = id;
+        this.setAttributes(footer, attributes);
+        
+        if (this.currentElement) {
+            this.currentElement.appendChild(footer);
+        } else {
+            this.container.appendChild(footer);
+        }
+        
+        this.elementStack.push(this.currentElement);
+        this.currentElement = footer;
+        return this;
+    }
+
+    footerEnd() {
         return this.divEnd();
     }
 
@@ -539,6 +573,256 @@ class WebWeaver {
     }
 
     navEnd() {
+        return this.divEnd();
+    }
+
+    // Canvas Methods
+    canvas(width = 400, height = 300, className = '', id = '', attributes = {}) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        if (className) canvas.className = className;
+        if (id) canvas.id = id;
+        this.setAttributes(canvas, attributes);
+        this.appendToContainer(canvas);
+        return this;
+    }
+
+    canvasScript(canvasId, script) {
+        const scriptElement = document.createElement('script');
+        scriptElement.textContent = `
+            (function() {
+                const canvas = document.getElementById('${canvasId}');
+                if (canvas) {
+                    ${script}
+                }
+            })();
+        `;
+        document.head.appendChild(scriptElement);
+        return this;
+    }
+
+    // Canvas Drawing Methods
+    canvasDraw(canvasId, drawFunction) {
+        const canvas = document.getElementById(canvasId);
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            drawFunction(ctx, canvas);
+        }
+        return this;
+    }
+
+    canvasRect(canvasId, x, y, width, height, fillColor = '#000000', strokeColor = null, lineWidth = 1) {
+        return this.canvasDraw(canvasId, (ctx) => {
+            if (fillColor) {
+                ctx.fillStyle = fillColor;
+                ctx.fillRect(x, y, width, height);
+            }
+            if (strokeColor) {
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = lineWidth;
+                ctx.strokeRect(x, y, width, height);
+            }
+        });
+    }
+
+    canvasCircle(canvasId, x, y, radius, fillColor = '#000000', strokeColor = null, lineWidth = 1) {
+        return this.canvasDraw(canvasId, (ctx) => {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            if (fillColor) {
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+            }
+            if (strokeColor) {
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = lineWidth;
+                ctx.stroke();
+            }
+        });
+    }
+
+    canvasLine(canvasId, x1, y1, x2, y2, strokeColor = '#000000', lineWidth = 1) {
+        return this.canvasDraw(canvasId, (ctx) => {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+        });
+    }
+
+    canvasText(canvasId, text, x, y, font = '16px Arial', fillColor = '#000000', strokeColor = null, lineWidth = 1) {
+        return this.canvasDraw(canvasId, (ctx) => {
+            ctx.font = font;
+            if (fillColor) {
+                ctx.fillStyle = fillColor;
+                ctx.fillText(text, x, y);
+            }
+            if (strokeColor) {
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = lineWidth;
+                ctx.strokeText(text, x, y);
+            }
+        });
+    }
+
+    canvasImage(canvasId, imageSrc, x, y, width = null, height = null) {
+        const img = new Image();
+        img.onload = () => {
+            this.canvasDraw(canvasId, (ctx) => {
+                if (width && height) {
+                    ctx.drawImage(img, x, y, width, height);
+                } else {
+                    ctx.drawImage(img, x, y);
+                }
+            });
+        };
+        img.src = imageSrc;
+        return this;
+    }
+
+    canvasClear(canvasId) {
+        return this.canvasDraw(canvasId, (ctx, canvas) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    }
+
+    canvasPath(canvasId, points, strokeColor = '#000000', lineWidth = 1, closePath = false) {
+        return this.canvasDraw(canvasId, (ctx) => {
+            if (points.length < 2) return;
+            
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            
+            if (closePath) {
+                ctx.closePath();
+            }
+            
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+        });
+    }
+
+    canvasGradient(canvasId, x, y, width, height, colors, direction = 'horizontal') {
+        return this.canvasDraw(canvasId, (ctx) => {
+            let gradient;
+            if (direction === 'horizontal') {
+                gradient = ctx.createLinearGradient(x, y, x + width, y);
+            } else {
+                gradient = ctx.createLinearGradient(x, y, x, y + height);
+            }
+            
+            colors.forEach((color, index) => {
+                gradient.addColorStop(index / (colors.length - 1), color);
+            });
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, y, width, height);
+        });
+    }
+
+    // HTML Structure Methods
+    htmlStart(lang = 'en') {
+        const html = document.createElement('html');
+        html.setAttribute('lang', lang);
+        this.appendToContainer(html);
+        this.elementStack.push(this.currentElement);
+        this.currentElement = html;
+        return this;
+    }
+
+    htmlEnd() {
+        return this.divEnd();
+    }
+
+    headStart() {
+        const head = document.createElement('head');
+        this.appendToContainer(head);
+        this.elementStack.push(this.currentElement);
+        this.currentElement = head;
+        return this;
+    }
+
+    headEnd() {
+        return this.divEnd();
+    }
+
+    bodyStart(className = '', id = '', attributes = {}) {
+        const body = document.createElement('body');
+        if (className) body.className = className;
+        if (id) body.id = id;
+        this.setAttributes(body, attributes);
+        this.appendToContainer(body);
+        this.elementStack.push(this.currentElement);
+        this.currentElement = body;
+        return this;
+    }
+
+    bodyEnd() {
+        return this.divEnd();
+    }
+
+    titleTag(title) {
+        const titleEl = document.createElement('title');
+        titleEl.textContent = title;
+        this.appendToContainer(titleEl);
+        return this;
+    }
+
+    metaTag(name, content) {
+        const meta = document.createElement('meta');
+        meta.setAttribute('name', name);
+        meta.setAttribute('content', content);
+        this.appendToContainer(meta);
+        return this;
+    }
+
+    linkTag(rel, href, type = '') {
+        const link = document.createElement('link');
+        link.setAttribute('rel', rel);
+        link.setAttribute('href', href);
+        if (type) link.setAttribute('type', type);
+        this.appendToContainer(link);
+        return this;
+    }
+
+    // Ensure all containers have proper closing methods
+    cardEnd() {
+        return this.divEnd();
+    }
+
+    containerEnd() {
+        return this.divEnd();
+    }
+
+    sectionEnd() {
+        return this.divEnd();
+    }
+
+    flexContainerEnd() {
+        return this.divEnd();
+    }
+
+    flexColumnEnd() {
+        return this.divEnd();
+    }
+
+    gridEnd() {
+        return this.divEnd();
+    }
+
+    rowEnd() {
+        return this.divEnd();
+    }
+
+    colEnd() {
         return this.divEnd();
     }
 
