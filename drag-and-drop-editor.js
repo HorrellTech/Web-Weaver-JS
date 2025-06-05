@@ -14,14 +14,25 @@ class DragDropEditor {
         this.currentStructure = [];
         this.editorContainer = null;
 
+        // Set dark theme as default for the editor
+        this.originalWeaver.setTheme('default').saveTheme('default');
+
+        // Set theme on document root immediately
+        document.documentElement.setAttribute('data-theme', 'default');
+
         this.defineComponents();
         this.addEditorStyles();
         this.createEditorInterface();
+
+        // Apply theme after interface is created
+        setTimeout(() => {
+            this.detectAndApplyCurrentTheme();
+        }, 100);
     }
 
     addEditorStyles() {
         this.originalWeaver.addCustomCSS(`
-                .editor-modal .modal {
+            .editor-modal .modal {
                 max-width: 98vw !important;
                 max-height: 98vh !important;
                 width: 98vw;
@@ -615,32 +626,239 @@ class DragDropEditor {
             }
             
             /* Theme inheritance for editor */
-            [data-theme="dark"] .component-panel,
-            [data-theme="dark"] .editor-canvas,
-            [data-theme="dark"] .canvas-component,
-            [data-theme="dark"] .draggable-component {
+            [data-theme="default"] .component-panel,
+            [data-theme="default"] .editor-canvas,
+            [data-theme="default"] .canvas-component,
+            [data-theme="default"] .draggable-component {
                 background: var(--bg-color);
                 color: var(--text-color);
                 border-color: var(--border-color);
             }
             
-            [data-theme="dark"] .component-tab {
+            [data-theme="default"] .component-tab {
                 background: var(--bg-secondary);
                 border-color: var(--border-color);
                 color: var(--text-color);
             }
             
-            [data-theme="dark"] .component-tab:hover {
+            [data-theme="default"] .component-tab:hover {
                 background: var(--bg-hover);
             }
             
-            [data-theme="dark"] .component-tab.active {
+            [data-theme="default"] .component-tab.active {
                 background: var(--primary-color);
                 color: white;
             }
             
-            [data-theme="dark"] .action-divider {
+            [data-theme="default"] .action-divider {
                 background: var(--border-color);
+            }
+
+            /* Enhanced dark theme support for editor */
+            [data-theme="default"] .editor-canvas {
+                background: #1f2937;
+                border-color: #374151;
+            }
+            
+            [data-theme="default"] .canvas-placeholder {
+                background: rgba(31, 41, 55, 0.5);
+                border-color: #374151;
+                color: #9ca3af;
+            }
+            
+            [data-theme="default"] .component-panel {
+                background: #1f2937;
+                border-color: #374151;
+            }
+            
+            [data-theme="default"] .draggable-component {
+                background: #111827;
+                border-color: #374151;
+                color: #f9fafb;
+            }
+            
+            [data-theme="default"] .draggable-component:hover {
+                background: #374151;
+                border-color: #3b82f6;
+            }
+            
+            [data-theme="default"] .canvas-component {
+                background: #111827;
+                border-color: #374151;
+                color: #f9fafb;
+            }
+            
+            [data-theme="default"] .canvas-component:hover {
+                background: #1f2937;
+                border-color: #3b82f6;
+            }
+            
+            [data-theme="default"] .component-header {
+                border-bottom-color: #374151;
+            }
+            
+            [data-theme="default"] .component-actions button {
+                color: #9ca3af;
+            }
+            
+            [data-theme="default"] .component-actions button:hover {
+                background: rgba(156, 163, 175, 0.1);
+                color: #f9fafb;
+            }
+            
+            [data-theme="default"] .modal {
+                background-color: #1f2937;
+                color: #f9fafb;
+            }
+            
+            [data-theme="default"] .modal-header {
+                border-bottom-color: #374151;
+                background: #111827;
+            }
+            
+            [data-theme="default"] .modal-footer {
+                border-top-color: #374151;
+                background: #111827;
+            }
+            
+            [data-theme="default"] .form-control {
+                background: #111827;
+                border-color: #374151;
+                color: #f9fafb;
+            }
+            
+            [data-theme="default"] .form-control:focus {
+                border-color: #3b82f6;
+                background: #1f2937;
+            }
+
+            /* Force dark theme for all editor elements - more aggressive approach */
+            .editor-modal,
+            .editor-modal *,
+            [data-modal-id="drag-drop-editor"],
+            [data-modal-id="drag-drop-editor"] *,
+            [data-theme="default"] .editor-modal,
+            [data-theme="default"] .editor-modal *,
+            [data-theme="default"] [data-modal-id="drag-drop-editor"],
+            [data-theme="default"] [data-modal-id="drag-drop-editor"] * {
+                background-color: var(--background-color, #1f2937) !important;
+                color: var(--text-color, #f9fafb) !important;
+                border-color: var(--border-color, #374151) !important;
+            }
+
+            /* Specific overrides for editor components */
+            [data-modal-id="drag-drop-editor"] .modal {
+                background-color: #1f2937 !important;
+                color: #f9fafb !important;
+                border: 1px solid #374151 !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .modal-header,
+            [data-modal-id="drag-drop-editor"] .modal-footer {
+                background-color: #111827 !important;
+                border-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .editor-canvas {
+                background-color: #1f2937 !important;
+                border-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .canvas-placeholder {
+                background: rgba(31, 41, 55, 0.5) !important;
+                border-color: #374151 !important;
+                color: #9ca3af !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .component-panel {
+                background-color: #1f2937 !important;
+                border-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .component-tab {
+                background-color: #111827 !important;
+                border-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .component-tab:hover {
+                background-color: #374151 !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .component-tab.active {
+                background-color: #3b82f6 !important;
+                color: white !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .draggable-component {
+                background-color: #111827 !important;
+                border-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .draggable-component:hover {
+                background-color: #374151 !important;
+                border-color: #3b82f6 !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .canvas-component {
+                background-color: #111827 !important;
+                border-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .canvas-component:hover {
+                background-color: #1f2937 !important;
+                border-color: #3b82f6 !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .component-header {
+                border-bottom-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .component-actions button {
+                color: #9ca3af !important;
+                background: transparent !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .component-actions button:hover {
+                background: rgba(156, 163, 175, 0.1) !important;
+                color: #f9fafb !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .action-divider {
+                background: #374151 !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .component-desc {
+                color: #9ca3af !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .component-name {
+                color: #f9fafb !important;
+            }
+
+            /* Form controls in editor */
+            [data-modal-id="drag-drop-editor"] .form-control,
+            [data-modal-id="drag-drop-editor"] input,
+            [data-modal-id="drag-drop-editor"] textarea,
+            [data-modal-id="drag-drop-editor"] select {
+                background-color: #111827 !important;
+                border-color: #374151 !important;
+                color: #f9fafb !important;
+            }
+
+            [data-modal-id="drag-drop-editor"] .form-control:focus,
+            [data-modal-id="drag-drop-editor"] input:focus,
+            [data-modal-id="drag-drop-editor"] textarea:focus,
+            [data-modal-id="drag-drop-editor"] select:focus {
+                border-color: #3b82f6 !important;
+                background-color: #1f2937 !important;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
             }
         `);
     }
@@ -1550,6 +1768,11 @@ class DragDropEditor {
         const modal = document.querySelector('[data-modal-id="drag-drop-editor"]');
         if (modal) {
             modal.classList.add('editor-modal');
+            // Force dark theme attributes
+            modal.setAttribute('data-theme', 'default');
+            modal.style.setProperty('--background-color', '#111827');
+            modal.style.setProperty('--text-color', '#f9fafb');
+            modal.style.setProperty('--border-color', '#374151');
         }
 
         // Remove the container from body only if it's still a child
@@ -1560,6 +1783,8 @@ class DragDropEditor {
         // Setup drag and drop after modal is created
         setTimeout(() => {
             this.setupDragAndDrop();
+            // Force theme application again
+            this.detectAndApplyCurrentTheme();
         }, 500);
     }
 
@@ -2845,23 +3070,42 @@ weaver.clear()`;
 
         canvas.innerHTML = '';
 
-        // Add placeholder back
+        // Add placeholder back with dark theme
         const placeholderContainer = document.createElement('div');
         placeholderContainer.id = 'placeholder-clear-' + Date.now();
+        
+        // Force dark theme on placeholder container
+        placeholderContainer.style.backgroundColor = '#1f2937';
+        placeholderContainer.style.color = '#f9fafb';
+        
         document.body.appendChild(placeholderContainer);
 
         const placeholderWeaver = new WebWeaver(placeholderContainer.id);
+        placeholderWeaver.setTheme('default'); // Force dark theme
 
         placeholderWeaver
-            .divStart('canvas-placeholder')
-            .text('🎨 Drop components here to build your website', 'div')
-            .paragraph('Drag components from the panel on the right to start building!')
+            .divStart('canvas-placeholder', '', {
+                style: 'background: rgba(31, 41, 55, 0.5) !important; border-color: #374151 !important; color: #9ca3af !important;'
+            })
+            .text('🎨 Drop components here to build your website', 'div', '', '', {
+                style: 'color: #9ca3af !important;'
+            })
+            .paragraph('Drag components from the panel on the right to start building!', '', '', {
+                style: 'color: #9ca3af !important;'
+            })
             .divEnd();
 
         canvas.appendChild(placeholderContainer.firstChild);
         document.body.removeChild(placeholderContainer);
 
         this.currentStructure = [];
+        
+        // Force theme reapplication after clearing
+        setTimeout(() => {
+            this.detectAndApplyCurrentTheme();
+            this.forceCompleteThemeReapplication();
+        }, 50);
+        
         this.originalWeaver.toast('Canvas cleared successfully!', 'info', 2000);
     }
 
@@ -2902,19 +3146,66 @@ weaver.clear()`;
     }
 
     detectAndApplyCurrentTheme() {
-        // Get the current theme from the original weaver
-        const currentTheme = this.originalWeaver.getCurrentTheme();
+        // Force dark theme as default
+        const currentTheme = 'default';
+        this.originalWeaver.setTheme(currentTheme);
 
         // Apply the same theme to the editor weaver
-        if (this.editorWeaver && currentTheme) {
+        if (this.editorWeaver) {
             this.editorWeaver.setTheme(currentTheme);
         }
 
-        // Also apply to the modal container
+        // Apply to the modal container and ensure inheritance
         const modal = document.querySelector('[data-modal-id="drag-drop-editor"]');
         if (modal) {
             modal.setAttribute('data-theme', currentTheme);
+            // Force theme on modal children with inline styles
+            modal.style.setProperty('--background-color', '#111827', 'important');
+            modal.style.setProperty('--text-color', '#f9fafb', 'important');
+            modal.style.setProperty('--border-color', '#374151', 'important');
+            
+            // Force specific component styling
+            const canvas = modal.querySelector('.editor-canvas');
+            if (canvas) {
+                canvas.style.setProperty('background-color', '#1f2937', 'important');
+                canvas.style.setProperty('border-color', '#374151', 'important');
+                canvas.style.setProperty('color', '#f9fafb', 'important');
+            }
+            
+            const componentPanel = modal.querySelector('.component-panel');
+            if (componentPanel) {
+                componentPanel.style.setProperty('background-color', '#1f2937', 'important');
+                componentPanel.style.setProperty('border-color', '#374151', 'important');
+                componentPanel.style.setProperty('color', '#f9fafb', 'important');
+            }
+            
+            // Force on draggable components
+            const draggableComponents = modal.querySelectorAll('.draggable-component');
+            draggableComponents.forEach(comp => {
+                comp.style.setProperty('background-color', '#111827', 'important');
+                comp.style.setProperty('border-color', '#374151', 'important');
+                comp.style.setProperty('color', '#f9fafb', 'important');
+            });
+            
+            // Force on component tabs
+            const componentTabs = modal.querySelectorAll('.component-tab:not(.active)');
+            componentTabs.forEach(tab => {
+                tab.style.setProperty('background-color', '#111827', 'important');
+                tab.style.setProperty('border-color', '#374151', 'important');
+                tab.style.setProperty('color', '#f9fafb', 'important');
+            });
+            
+            // Force on canvas components
+            const canvasComponents = modal.querySelectorAll('.canvas-component');
+            canvasComponents.forEach(comp => {
+                comp.style.setProperty('background-color', '#111827', 'important');
+                comp.style.setProperty('border-color', '#374151', 'important');
+                comp.style.setProperty('color', '#f9fafb', 'important');
+            });
         }
+        
+        // Apply to document body to ensure inheritance
+        document.documentElement.setAttribute('data-theme', currentTheme);
     }
 
     setupCanvasDragDrop(canvas) {
@@ -2922,6 +3213,11 @@ weaver.clear()`;
             e.preventDefault();
 
             if (this.draggedElement) {
+                // Maintain dark theme during drag
+                canvas.style.setProperty('background-color', '#1f2937', 'important');
+                canvas.style.setProperty('border-color', '#3b82f6', 'important'); // Blue border during drag
+                canvas.style.setProperty('color', '#f9fafb', 'important');
+                
                 // Clear previous highlights
                 canvas.querySelectorAll('.canvas-component').forEach(comp => {
                     comp.classList.remove('drag-target-before', 'drag-target-after');
@@ -2947,6 +3243,11 @@ weaver.clear()`;
 
         canvas.addEventListener('dragleave', (e) => {
             if (!canvas.contains(e.relatedTarget)) {
+                // Restore dark theme colors
+                canvas.style.setProperty('background-color', '#1f2937', 'important');
+                canvas.style.setProperty('border-color', '#374151', 'important');
+                canvas.style.setProperty('color', '#f9fafb', 'important');
+                
                 canvas.classList.remove('drag-over');
                 // Clear all drag highlights
                 canvas.querySelectorAll('.canvas-component').forEach(comp => {
@@ -2958,6 +3259,12 @@ weaver.clear()`;
 
         canvas.addEventListener('drop', (e) => {
             e.preventDefault();
+            
+            // Restore dark theme colors immediately
+            canvas.style.setProperty('background-color', '#1f2937', 'important');
+            canvas.style.setProperty('border-color', '#374151', 'important');
+            canvas.style.setProperty('color', '#f9fafb', 'important');
+            
             canvas.classList.remove('drag-over');
 
             // Clear all drag highlights
@@ -2977,6 +3284,11 @@ weaver.clear()`;
                     this.reorderComponent(this.draggedElement, dropTarget);
                 }
             }
+            
+            // Force complete theme reapplication after drop
+            setTimeout(() => {
+                this.forceCompleteThemeReapplication();
+            }, 100);
         });
     }
 
@@ -3109,6 +3421,54 @@ weaver.clear()`;
         
         // Update nesting levels for all components AFTER insertion
         this.updateNestingLevels();
+
+        // Force theme reapplication after adding component
+        setTimeout(() => {
+            this.detectAndApplyCurrentTheme();
+            
+            // Force dark theme on the specific elements that might have reset
+            const modal = document.querySelector('[data-modal-id="drag-drop-editor"]');
+            if (modal) {
+                modal.setAttribute('data-theme', 'default');
+                modal.style.setProperty('--background-color', '#111827');
+                modal.style.setProperty('--text-color', '#f9fafb');
+                modal.style.setProperty('--border-color', '#374151');
+                
+                // Force on canvas specifically
+                const canvas = modal.querySelector('.editor-canvas');
+                if (canvas) {
+                    canvas.style.backgroundColor = '#1f2937';
+                    canvas.style.borderColor = '#374151';
+                    canvas.style.color = '#f9fafb';
+                }
+                
+                // Force on component panel specifically
+                const componentPanel = modal.querySelector('.component-panel');
+                if (componentPanel) {
+                    componentPanel.style.backgroundColor = '#1f2937';
+                    componentPanel.style.borderColor = '#374151';
+                    componentPanel.style.color = '#f9fafb';
+                }
+                
+                // Force on all draggable components
+                const draggableComponents = modal.querySelectorAll('.draggable-component');
+                draggableComponents.forEach(comp => {
+                    comp.style.backgroundColor = '#111827';
+                    comp.style.borderColor = '#374151';
+                    comp.style.color = '#f9fafb';
+                });
+                
+                // Force on all component tabs
+                const componentTabs = modal.querySelectorAll('.component-tab');
+                componentTabs.forEach(tab => {
+                    if (!tab.classList.contains('active')) {
+                        tab.style.backgroundColor = '#111827';
+                        tab.style.borderColor = '#374151';
+                        tab.style.color = '#f9fafb';
+                    }
+                });
+            }
+        }, 50);
         
         // Update structure
         this.updateStructure();
@@ -3303,6 +3663,135 @@ weaver.clear()`;
         );
     }
 
+    forceDarkThemeOnElement(element) {
+        if (!element) return;
+        
+        // Force dark theme on the element itself
+        element.style.setProperty('background-color', '#111827', 'important');
+        element.style.setProperty('border-color', '#374151', 'important');
+        element.style.setProperty('color', '#f9fafb', 'important');
+        
+        // Force on all children
+        const allChildren = element.querySelectorAll('*');
+        allChildren.forEach(child => {
+            // Don't override specific component preview content colors
+            if (!child.classList.contains('preview-element')) {
+                child.style.setProperty('color', '#f9fafb', 'important');
+            }
+            
+            // Force on action buttons
+            if (child.classList.contains('reorder-btn') || 
+                child.classList.contains('edit-btn') || 
+                child.classList.contains('delete-btn') || 
+                child.classList.contains('move-btn') || 
+                child.classList.contains('collapse-btn')) {
+                child.style.setProperty('color', '#9ca3af', 'important');
+                child.style.setProperty('background', 'transparent', 'important');
+            }
+            
+            // Force on action dividers
+            if (child.classList.contains('action-divider')) {
+                child.style.setProperty('background', '#374151', 'important');
+            }
+            
+            // Force on headers
+            if (child.classList.contains('component-header')) {
+                child.style.setProperty('border-bottom-color', '#374151', 'important');
+            }
+        });
+    }
+
+    // Add new method for complete theme reapplication
+    forceCompleteThemeReapplication() {
+        const modal = document.querySelector('[data-modal-id="drag-drop-editor"]');
+        if (!modal) return;
+        
+        // Force theme on modal
+        modal.setAttribute('data-theme', 'default');
+        modal.style.setProperty('--background-color', '#111827', 'important');
+        modal.style.setProperty('--text-color', '#f9fafb', 'important');
+        modal.style.setProperty('--border-color', '#374151', 'important');
+        
+        // Force on modal itself
+        modal.style.setProperty('background-color', '#1f2937', 'important');
+        modal.style.setProperty('color', '#f9fafb', 'important');
+        modal.style.setProperty('border-color', '#374151', 'important');
+        
+        // Force on modal header and footer
+        const modalHeader = modal.querySelector('.modal-header');
+        const modalFooter = modal.querySelector('.modal-footer');
+        
+        if (modalHeader) {
+            modalHeader.style.setProperty('background-color', '#111827', 'important');
+            modalHeader.style.setProperty('border-bottom-color', '#374151', 'important');
+            modalHeader.style.setProperty('color', '#f9fafb', 'important');
+        }
+        
+        if (modalFooter) {
+            modalFooter.style.setProperty('background-color', '#111827', 'important');
+            modalFooter.style.setProperty('border-top-color', '#374151', 'important');
+            modalFooter.style.setProperty('color', '#f9fafb', 'important');
+        }
+        
+        // Force on canvas
+        const canvas = modal.querySelector('.editor-canvas');
+        if (canvas) {
+            canvas.style.setProperty('background-color', '#1f2937', 'important');
+            canvas.style.setProperty('border-color', '#374151', 'important');
+            canvas.style.setProperty('color', '#f9fafb', 'important');
+            
+            // Force on canvas placeholder if it exists
+            const placeholder = canvas.querySelector('.canvas-placeholder');
+            if (placeholder) {
+                placeholder.style.setProperty('background', 'rgba(31, 41, 55, 0.5)', 'important');
+                placeholder.style.setProperty('border-color', '#374151', 'important');
+                placeholder.style.setProperty('color', '#9ca3af', 'important');
+            }
+        }
+        
+        // Force on component panel
+        const componentPanel = modal.querySelector('.component-panel');
+        if (componentPanel) {
+            componentPanel.style.setProperty('background-color', '#1f2937', 'important');
+            componentPanel.style.setProperty('border-color', '#374151', 'important');
+            componentPanel.style.setProperty('color', '#f9fafb', 'important');
+        }
+        
+        // Force on all draggable components
+        const draggableComponents = modal.querySelectorAll('.draggable-component');
+        draggableComponents.forEach(comp => {
+            comp.style.setProperty('background-color', '#111827', 'important');
+            comp.style.setProperty('border-color', '#374151', 'important');
+            comp.style.setProperty('color', '#f9fafb', 'important');
+        });
+        
+        // Force on all component tabs
+        const componentTabs = modal.querySelectorAll('.component-tab');
+        componentTabs.forEach(tab => {
+            if (!tab.classList.contains('active')) {
+                tab.style.setProperty('background-color', '#111827', 'important');
+                tab.style.setProperty('border-color', '#374151', 'important');
+                tab.style.setProperty('color', '#f9fafb', 'important');
+            }
+        });
+        
+        // Force on all canvas components
+        const canvasComponents = modal.querySelectorAll('.canvas-component');
+        canvasComponents.forEach(comp => {
+            this.forceDarkThemeOnElement(comp);
+        });
+        
+        // Force on all buttons in modal
+        const buttons = modal.querySelectorAll('button');
+        buttons.forEach(button => {
+            if (!button.classList.contains('btn-primary') && !button.classList.contains('active')) {
+                button.style.setProperty('background-color', '#374151', 'important');
+                button.style.setProperty('border-color', '#374151', 'important');
+                button.style.setProperty('color', '#f9fafb', 'important');
+            }
+        });
+    }
+
     addComponentToCanvasDirectly(componentInstance, customData = {}) {
         const canvas = document.querySelector('.editor-canvas');
         if (!canvas) return;
@@ -3316,9 +3805,16 @@ weaver.clear()`;
         // Create canvas component container
         const canvasComponentContainer = document.createElement('div');
         canvasComponentContainer.id = 'canvas-comp-direct-' + Date.now();
+        
+        // Apply dark theme to container immediately
+        canvasComponentContainer.style.backgroundColor = '#111827';
+        canvasComponentContainer.style.color = '#f9fafb';
+        canvasComponentContainer.style.borderColor = '#374151';
+        
         document.body.appendChild(canvasComponentContainer);
         
         const canvasWeaver = new WebWeaver(canvasComponentContainer.id);
+        canvasWeaver.setTheme('default'); // Force dark theme
         
         // Determine extra classes based on component type
         let extraClasses = '';
@@ -3332,34 +3828,49 @@ weaver.clear()`;
         canvasWeaver
             .divStart(`canvas-component ${extraClasses}`, '', {
                 'data-instance-id': componentInstance.instanceId,
-                draggable: 'true'
+                draggable: 'true',
+                style: 'background-color: #111827 !important; color: #f9fafb !important; border-color: #374151 !important;'
             })
-                .divStart('component-header')
-                    .text(`${componentInstance.icon} ${componentInstance.name}`, 'span', 'component-title')
+                .divStart('component-header', '', {
+                    style: 'color: #f9fafb !important; border-bottom-color: #374151 !important;'
+                })
+                    .text(`${componentInstance.icon} ${componentInstance.name}`, 'span', 'component-title', '', {
+                        style: 'color: #f9fafb !important;'
+                    })
                     .divStart('component-actions')
                         .button('⬆️', () => this.moveComponent(componentInstance.instanceId, 'up'), 'reorder-btn', '', {
-                            title: 'Move up'
+                            title: 'Move up',
+                            style: 'color: #9ca3af !important; background: transparent !important;'
                         })
                         .button('⬇️', () => this.moveComponent(componentInstance.instanceId, 'down'), 'reorder-btn', '', {
-                            title: 'Move down'
+                            title: 'Move down',
+                            style: 'color: #9ca3af !important; background: transparent !important;'
                         })
                         .button('⋮⋮', null, 'move-btn', '', {
-                            title: 'Drag to reorder'
+                            title: 'Drag to reorder',
+                            style: 'color: #9ca3af !important; background: transparent !important;'
                         })
                         .button('✏️', () => this.editComponent(componentInstance), 'edit-btn', '', {
-                            title: 'Edit component'
+                            title: 'Edit component',
+                            style: 'color: #9ca3af !important; background: transparent !important;'
                         })
                         .button('🗑️', () => this.deleteComponent(componentInstance.instanceId), 'delete-btn', '', {
-                            title: 'Delete component'
+                            title: 'Delete component',
+                            style: 'color: #9ca3af !important; background: transparent !important;'
                         })
-                        .divStart('action-divider')
+                        .divStart('action-divider', '', {
+                            style: 'background: #374151 !important;'
+                        })
                         .divEnd()
                         .button(customData.collapsed ? '🔼' : '🔽', () => this.toggleComponentCollapse(componentInstance.instanceId), `collapse-btn ${customData.collapsed ? 'collapsed' : ''}`, '', {
-                            title: customData.collapsed ? 'Expand component' : 'Collapse component'
+                            title: customData.collapsed ? 'Expand component' : 'Collapse component',
+                            style: 'color: #9ca3af !important; background: transparent !important;'
                         })
                     .divEnd()
                 .divEnd()
-                .divStart('component-preview', 'component-preview');
+                .divStart('component-preview', 'component-preview', {
+                    style: 'color: #f9fafb !important;'
+                });
         
         // Add the component preview
         this.addComponentPreview(canvasWeaver, componentInstance);
@@ -3369,6 +3880,9 @@ weaver.clear()`;
         // Move to canvas and store component instance
         const componentElement = canvasComponentContainer.firstChild;
         componentElement._componentInstance = componentInstance;
+        
+        // Force dark theme styles on the component element
+        this.forceDarkThemeOnElement(componentElement);
         
         canvas.appendChild(componentElement);
         
@@ -3424,10 +3938,8 @@ weaver.clear()`;
             }, 'btn btn-primary')
             .divEnd();
 
-        // Move content and cleanup
-        const content = container.firstChild;
-        document.body.removeChild(container);
-        return content;
+        // Return the content directly without removing from DOM
+        return container;
     }
 
     // Save project functionality
@@ -3450,8 +3962,10 @@ weaver.clear()`;
     createSaveProjectDialog() {
         const container = document.createElement('div');
         container.id = 'save-project-' + Date.now();
+        
+        // Append to DOM BEFORE creating WebWeaver instance
         document.body.appendChild(container);
-
+        
         const weaver = new WebWeaver(container.id);
         
         // Get existing saved projects
@@ -3477,14 +3991,20 @@ weaver.clear()`;
             savedProjects.forEach(project => {
                 weaver
                     .divStart('project-item', '', { 
-                        style: 'display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #eee; cursor: pointer;',
-                        onclick: () => {
-                            document.getElementById('project-name').value = project.name;
-                        }
+                        style: 'display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #eee; cursor: pointer;'
                     })
                     .text(project.name, 'span')
                     .text(new Date(project.savedAt).toLocaleDateString(), 'small', 'text-muted')
                     .divEnd();
+                
+                // Add click handler
+                const projectItem = container.querySelector('.project-item:last-child');
+                if (projectItem) {
+                    projectItem.addEventListener('click', () => {
+                        const nameInput = container.querySelector('#project-name');
+                        if (nameInput) nameInput.value = project.name;
+                    });
+                }
             });
 
             weaver.divEnd();
@@ -3496,18 +4016,15 @@ weaver.clear()`;
                 this.originalWeaver.closeModal('save-project-modal');
             }, 'btn btn-secondary')
             .button('💾 Save Project', () => {
-                this.performSaveProject();
+                this.performSaveProject(container);
             }, 'btn btn-primary')
             .divEnd();
 
-        // Move content and cleanup
-        const content = container.firstChild;
-        document.body.removeChild(container);
-        return content;
+        return container;
     }
 
-    performSaveProject() {
-        const projectNameInput = document.getElementById('project-name');
+    performSaveProject(container) {
+        const projectNameInput = container.querySelector('#project-name');
         const projectName = projectNameInput ? projectNameInput.value.trim() : '';
 
         if (!projectName) {
@@ -3571,8 +4088,10 @@ weaver.clear()`;
     createLoadProjectDialog() {
         const container = document.createElement('div');
         container.id = 'load-project-' + Date.now();
+        
+        // Append to DOM BEFORE creating WebWeaver instance
         document.body.appendChild(container);
-
+        
         const weaver = new WebWeaver(container.id);
         const savedProjects = this.getSavedProjects();
         
@@ -3590,8 +4109,7 @@ weaver.clear()`;
             savedProjects.forEach((project, index) => {
                 weaver
                     .divStart('project-card', `project-${index}`, { 
-                        style: 'border: 1px solid #dee2e6; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s;',
-                        onclick: `this.style.backgroundColor = this.style.backgroundColor ? '' : '#f8f9fa'`
+                        style: 'border: 1px solid #dee2e6; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s;'
                     })
                     .h5(project.name)
                     .text(`Components: ${project.metadata?.componentCount || 0}`, 'div', 'text-muted', '', { style: 'margin: 0.5rem 0;' })
@@ -3601,7 +4119,7 @@ weaver.clear()`;
                         this.performLoadProject(project);
                     }, 'btn btn-sm')
                     .button('🗑️ Delete', () => {
-                        this.deleteProject(project.name, index);
+                        this.deleteProject(project.name, index, container);
                     }, 'btn btn-sm btn-secondary')
                     .button('📥 Export', () => {
                         this.exportProject(project);
@@ -3622,7 +4140,7 @@ weaver.clear()`;
                 style: 'margin-bottom: 1rem;'
             })
             .button('📥 Import from File', () => {
-                this.importProjectFromFile();
+                this.importProjectFromFile(container);
             }, 'btn btn-secondary')
             .divEnd()
             .flexContainer('flex gap-2 justify-end', '', { style: 'margin-top: 2rem;' })
@@ -3631,10 +4149,7 @@ weaver.clear()`;
             }, 'btn btn-secondary')
             .divEnd();
 
-        // Move content and cleanup
-        const content = container.firstChild;
-        document.body.removeChild(container);
-        return content;
+        return container;
     }
 
     performLoadProject(projectData) {
@@ -3651,6 +4166,12 @@ weaver.clear()`;
                 this.editorWeaver.setTheme(projectData.metadata.theme);
             }
             
+            // Force dark theme reapplication after loading
+            setTimeout(() => {
+                this.detectAndApplyCurrentTheme();
+                this.forceCompleteThemeReapplication();
+            }, 100);
+            
             this.originalWeaver.closeModal('load-project-modal');
             this.originalWeaver.toast(`Project "${projectData.name}" loaded successfully!`, 'success', 3000);
             
@@ -3660,7 +4181,7 @@ weaver.clear()`;
         }
     }
 
-    deleteProject(projectName, index) {
+    deleteProject(projectName, index, container) {
         if (confirm(`Are you sure you want to delete "${projectName}"?`)) {
             try {
                 const savedProjects = this.getSavedProjects();
@@ -3691,8 +4212,8 @@ weaver.clear()`;
         this.originalWeaver.toast(`Project "${projectData.name}" exported!`, 'success', 2000);
     }
 
-    importProjectFromFile() {
-        const fileInput = document.getElementById('import-file');
+    importProjectFromFile(container) {
+        const fileInput = container.querySelector('#import-file');
         const file = fileInput?.files[0];
         
         if (!file) {
@@ -3731,6 +4252,13 @@ weaver.clear()`;
                 
                 // Refresh the load dialog
                 this.originalWeaver.closeModal('load-project-modal');
+                
+                // Force theme reapplication after import
+                setTimeout(() => {
+                    this.detectAndApplyCurrentTheme();
+                    this.forceCompleteThemeReapplication();
+                }, 100);
+                
                 this.loadProject();
                 
                 this.originalWeaver.toast(`Project "${projectData.name}" imported successfully!`, 'success', 3000);
@@ -3784,6 +4312,12 @@ weaver.clear()`;
         // Update nesting levels after all components are added
         this.updateNestingLevels();
         this.updateStructure();
+        
+        // Force theme reapplication after deserialization
+        setTimeout(() => {
+            this.detectAndApplyCurrentTheme();
+            this.forceCompleteThemeReapplication();
+        }, 200);
     }
 
     reorderComponent(draggedComponent, dropTarget) {
@@ -3905,11 +4439,12 @@ weaver.clear()`;
 
         this.previewWeaver = new WebWeaver(previewContainer.id);
 
-        // Apply current theme to preview
-        const currentTheme = this.originalWeaver.getCurrentTheme();
-        if (currentTheme) {
-            this.previewWeaver.setTheme(currentTheme);
+        // Apply current theme to preview (default to default)
+        let currentTheme = this.originalWeaver.getCurrentTheme();
+        if (!currentTheme || currentTheme === 'default') {
+            currentTheme = 'default';
         }
+        this.previewWeaver.setTheme(currentTheme);
 
         // Build the preview
         this.previewWeaver.clear();

@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize WebWeaver
     const weaver2 = new WebWeaver('app-container');
     
+    // Ensure default theme is applied and saved
+    weaver2.setTheme('default').saveTheme('default');
+
     // Call the main website building function
     buildExampleWebsite(weaver2);
 });
@@ -111,10 +114,10 @@ function buildExampleWebsite(weaver) {
         .text('Click the buttons below to switch color themes:', 'p', 'mb-4')
         .flexContainer('flex gap-4 justify-center mb-8');
     
-    // Theme buttons with save functionality
+    // Theme buttons with save functionality - updated to include light theme
     const themes = [
-        { name: 'Blue', method: 'applyBlueTheme', theme: 'default' },
-        { name: 'Dark', method: 'applyDarkTheme', theme: 'dark' },
+        { name: 'default', method: 'applyDarkTheme', theme: 'default' },
+        { name: 'Light', method: 'applyLightTheme', theme: 'light' },
         { name: 'Green', method: 'applyGreenTheme', theme: 'green' },
         { name: 'Purple', method: 'applyPurpleTheme', theme: 'purple' },
         { name: 'Red', method: 'applyRedTheme', theme: 'red' }

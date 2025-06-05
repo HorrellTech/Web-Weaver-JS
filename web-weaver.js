@@ -13,11 +13,14 @@ class WebWeaver {
         if (!this.container) {
             throw new Error(`Container with id '${containerId}' not found`);
         }
+        
+        // Set dark theme as default
+        this.setTheme('default');
     }
 
     // Theme Management
     setTheme(themeName) {
-        const validThemes = ['default', 'dark', 'green', 'purple', 'red'];
+        const validThemes = ['default', 'light', 'green', 'purple', 'red'];
         if (validThemes.includes(themeName)) {
             this.currentTheme = themeName;
             if (themeName === 'default') {
@@ -988,12 +991,16 @@ class WebWeaver {
     }
 
     // Theme Preset Methods
+    applyLightTheme() {
+        return this.setTheme('light');
+    }
+
     applyBlueTheme() {
-        return this.setTheme('default');
+        return this.setTheme('light'); // Blue theme is now light theme
     }
 
     applyDarkTheme() {
-        return this.setTheme('dark');
+        return this.setTheme('default');
     }
 
     applyGreenTheme() {

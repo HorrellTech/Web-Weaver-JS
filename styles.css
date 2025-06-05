@@ -1,7 +1,30 @@
 /* Web Weaver JS - Color Scheme Based CSS */
 
 :root {
-    /* Default Color Scheme - Blue Theme */
+    /* Dark Theme as Default */
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-active: #1d4ed8;
+    --secondary-color: #6b7280;
+    --secondary-hover: #4b5563;
+    --background-color: #111827;
+    --background-alt: #1f2937;
+    --text-color: #f9fafb;
+    --text-light: #9ca3af;
+    --border-color: #374151;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    
+    /* Additional dark theme properties */
+    --bg-color: #111827;
+    --bg-secondary: #1f2937;
+    --bg-hover: #374151;
+}
+
+/* Light Theme (previously default) */
+[data-theme="light"] {
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
     --primary-active: #1e40af;
@@ -16,9 +39,14 @@
     --success-color: #22c55e;
     --warning-color: #f59e0b;
     --error-color: #ef4444;
+    
+    /* Additional light theme properties */
+    --bg-color: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-hover: #e2e8f0;
 }
 
-/* Dark Theme */
+/* Dark Theme (explicit) */
 [data-theme="dark"] {
     --primary-color: #3b82f6;
     --primary-hover: #2563eb;
@@ -34,6 +62,11 @@
     --success-color: #10b981;
     --warning-color: #f59e0b;
     --error-color: #ef4444;
+    
+    /* Additional dark theme properties */
+    --bg-color: #111827;
+    --bg-secondary: #1f2937;
+    --bg-hover: #374151;
 }
 
 /* Green Theme */
@@ -807,4 +840,43 @@ h3 {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Prevent white flashing during drag operations */
+[data-modal-id="drag-drop-editor"] .editor-canvas,
+[data-modal-id="drag-drop-editor"] .editor-canvas *,
+[data-modal-id="drag-drop-editor"] .canvas-component,
+[data-modal-id="drag-drop-editor"] .canvas-component * {
+    transition: none !important;
+    background-color: var(--bg-color, #1f2937) !important;
+    color: var(--text-color, #f9fafb) !important;
+}
+
+/* Force immediate dark theme application */
+[data-modal-id="drag-drop-editor"] * {
+    background-color: inherit !important;
+    color: inherit !important;
+}
+
+/* Specific drag states */
+[data-modal-id="drag-drop-editor"] .editor-canvas.drag-over {
+    background-color: #1f2937 !important;
+    border-color: #3b82f6 !important;
+    color: #f9fafb !important;
+}
+
+/* Component being dragged */
+[data-modal-id="drag-drop-editor"] .canvas-component.dragging {
+    background-color: #111827 !important;
+    border-color: #374151 !important;
+    color: #f9fafb !important;
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+/* Ensure no white backgrounds during any state changes */
+[data-modal-id="drag-drop-editor"] .canvas-placeholder {
+    background: rgba(31, 41, 55, 0.5) !important;
+    border-color: #374151 !important;
+    color: #9ca3af !important;
 }
