@@ -1032,6 +1032,34 @@ class DragDropEditor {
             .cm-qualifier {
                 color: #d19a66 !important;
             }
+
+            /* Add button styling */
+            .add-component-btn {
+                opacity: 0;
+                transition: opacity 0.2s ease !important;
+                background: #3b82f6 !important;
+                color: white !important;
+                border: none !important;
+                padding: 0.25rem 0.5rem !important;
+                font-size: 0.8rem !important;
+                border-radius: 4px !important;
+                cursor: pointer !important;
+                min-width: auto !important;
+                min-height: auto !important;
+            }
+
+            .draggable-component:hover .add-component-btn {
+                opacity: 1;
+            }
+
+            .add-component-btn:hover {
+                background: #2563eb !important;
+                transform: scale(1.05) !important;
+            }
+
+            .component-info {
+                flex: 1;
+            }
         `);
     }
 
@@ -1881,9 +1909,17 @@ class DragDropEditor {
                             draggable: 'true',
                             'data-component-id': component.id
                         })
+                        .flexContainer('flex items-center justify-between')
+                        .divStart('component-info')
                         .flexContainer('flex items-center')
                         .text(component.icon, 'span', 'component-icon')
                         .text(component.name, 'span', 'component-name')
+                        .divEnd()
+                        .divEnd()
+                        .button('➕', () => this.addComponentToCanvasFromButton(component.id), 'add-component-btn', '', {
+                            title: 'Add to canvas',
+                            style: 'padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;'
+                        })
                         .divEnd()
                         .text(component.description, 'div', 'component-desc')
                         .divEnd();
@@ -4566,6 +4602,14 @@ class DragDropEditor {
         this.originalWeaver.toast(`${component.name} added to canvas!`, 'success', 2000);
     }
 
+    addComponentToCanvasFromButton(componentId) {
+        const component = this.components.find(c => c.id === componentId);
+        if (!component) return;
+
+        // Add to the end of the canvas (no drop target)
+        this.addComponentToCanvas(component, null);
+    }
+
     findMatchingClosingComponent(allComponents, startIndex, startComponentInstance) {
         let nestingCount = 1;
 
@@ -4876,9 +4920,17 @@ class DragDropEditor {
                             draggable: 'true',
                             'data-component-id': component.id
                         })
+                        .flexContainer('flex items-center justify-between')
+                        .divStart('component-info')
                         .flexContainer('flex items-center')
                         .text(component.icon, 'span', 'component-icon')
                         .text(component.name, 'span', 'component-name')
+                        .divEnd()
+                        .divEnd()
+                        .button('➕', () => this.addComponentToCanvasFromButton(component.id), 'add-component-btn', '', {
+                            title: 'Add to canvas',
+                            style: 'padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;'
+                        })
                         .divEnd()
                         .text(component.description, 'div', 'component-desc')
                         .divEnd();
