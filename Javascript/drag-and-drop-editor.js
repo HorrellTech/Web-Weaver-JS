@@ -24,11 +24,11 @@ class DragDropEditor {
         this.addEditorStyles();
 
         // Load CodeMirror assets before creating interface
-    this.loadCodeMirrorAssets().then(() => {
-        this.createEditorInterface();
+        this.loadCodeMirrorAssets().then(() => {
+            this.createEditorInterface();
 
-        // Apply theme after interface is created
-        setTimeout(() => {
+            // Apply theme after interface is created
+            setTimeout(() => {
                 this.detectAndApplyCurrentTheme();
             }, 100);
         }).catch((error) => {
@@ -176,6 +176,32 @@ class DragDropEditor {
                 resize: horizontal;
             }
             
+            /* Component Categories Container - Add scrolling support */
+            .component-categories-container {
+                max-height: calc(70vh - 200px);
+                overflow-y: auto;
+                padding-right: 0.5rem;
+            }
+            
+            /* Scrollbar styling for component categories */
+            .component-categories-container::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .component-categories-container::-webkit-scrollbar-track {
+                background: rgba(55, 65, 81, 0.3) !important;
+                border-radius: 3px;
+            }
+            
+            .component-categories-container::-webkit-scrollbar-thumb {
+                background: rgba(156, 163, 175, 0.5) !important;
+                border-radius: 3px;
+            }
+            
+            .component-categories-container::-webkit-scrollbar-thumb:hover {
+                background: rgba(156, 163, 175, 0.8) !important;
+            }
+            
             /* Component Tabs */
             .component-tabs {
                 display: flex;
@@ -219,6 +245,20 @@ class DragDropEditor {
                 display: block;
             }
             
+            /* Touch feedback states */
+            .touch-ready {
+                transform: scale(1.02) !important;
+                transition: transform 0.1s ease !important;
+                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+            }
+            
+            .touch-feedback {
+                transform: scale(1.05) !important;
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.5) !important;
+                border-color: #3b82f6 !important;
+                background-color: rgba(59, 130, 246, 0.1) !important;
+            }
+            
             /* Draggable Components */
             .draggable-component {
                 background-color: #111827 !important;
@@ -230,6 +270,7 @@ class DragDropEditor {
                 transition: all 0.2s;
                 position: relative;
                 color: #f9fafb !important;
+                touch-action: pan-y; /* Allow vertical scrolling by default */
             }
             
             .draggable-component:hover {
@@ -246,6 +287,12 @@ class DragDropEditor {
             .draggable-component.dragging {
                 opacity: 0.5;
                 transform: rotate(2deg);
+            }
+            
+            .draggable-component.touch-dragging {
+                opacity: 0.3;
+                transform: scale(0.95) rotate(3deg);
+                z-index: 1000;
             }
             
             /* Canvas Components */
@@ -265,6 +312,7 @@ class DragDropEditor {
                 display: flex;
                 flex-direction: column;
                 color: #f9fafb !important;
+                touch-action: pan-y; /* Allow vertical scrolling by default */
             }
             
             .canvas-component:hover {
@@ -276,6 +324,44 @@ class DragDropEditor {
             .canvas-component.dragging {
                 opacity: 0.5;
                 transform: rotate(2deg);
+            }
+            
+            .canvas-component.touch-dragging {
+                opacity: 0.3;
+                transform: scale(0.95) rotate(3deg);
+                z-index: 1000;
+            }
+            
+            /* Touch Drop Zones */
+            .touch-drop-zone {
+                height: 60px;
+                margin: 0.5rem 0;
+                border: 2px dashed transparent;
+                border-radius: 8px;
+                background: rgba(59, 130, 246, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #3b82f6;
+                font-weight: 600;
+                font-size: 0.9rem;
+                opacity: 0;
+                transform: scaleY(0);
+                transition: all 0.3s ease;
+                pointer-events: none;
+            }
+            
+            .touch-drop-zone.active {
+                opacity: 1;
+                transform: scaleY(1);
+                border-color: #3b82f6;
+            }
+            
+            .touch-drop-zone:hover,
+            .touch-drop-zone.highlight {
+                background: rgba(59, 130, 246, 0.3);
+                border-color: #60a5fa;
+                color: #60a5fa;
             }
             
             /* Component Header */
@@ -312,6 +398,9 @@ class DragDropEditor {
                 font-size: 12px;
                 transition: all 0.2s;
                 color: #9ca3af !important;
+                min-width: 24px;
+                min-height: 24px;
+                touch-action: manipulation;
             }
             
             .component-actions button:hover {
@@ -341,21 +430,25 @@ class DragDropEditor {
             }
             
             /* Scrollbars */
-            .component-preview::-webkit-scrollbar {
+            .component-preview::-webkit-scrollbar,
+            .editor-canvas::-webkit-scrollbar {
                 width: 6px;
             }
             
-            .component-preview::-webkit-scrollbar-track {
+            .component-preview::-webkit-scrollbar-track,
+            .editor-canvas::-webkit-scrollbar-track {
                 background: rgba(55, 65, 81, 0.3) !important;
                 border-radius: 3px;
             }
             
-            .component-preview::-webkit-scrollbar-thumb {
+            .component-preview::-webkit-scrollbar-thumb,
+            .editor-canvas::-webkit-scrollbar-thumb {
                 background: rgba(156, 163, 175, 0.5) !important;
                 border-radius: 3px;
             }
             
-            .component-preview::-webkit-scrollbar-thumb:hover {
+            .component-preview::-webkit-scrollbar-thumb:hover,
+            .editor-canvas::-webkit-scrollbar-thumb:hover {
                 background: rgba(156, 163, 175, 0.8) !important;
             }
             
@@ -592,6 +685,10 @@ class DragDropEditor {
                     resize: none;
                 }
                 
+                .component-categories-container {
+                    max-height: calc(40vh - 150px);
+                }
+                
                 .editor-canvas {
                     flex: 1;
                     min-height: 50vh;
@@ -617,6 +714,25 @@ class DragDropEditor {
                     padding: 0.5rem;
                     margin-bottom: 0.25rem;
                     min-height: 40px;
+                }
+                
+                /* Touch drag handles for mobile */
+                .touch-drag-handle {
+                    position: absolute;
+                    top: 50%;
+                    right: 0.5rem;
+                    transform: translateY(-50%);
+                    font-size: 1.2rem;
+                    color: #9ca3af;
+                    opacity: 0.7;
+                    pointer-events: none;
+                    user-select: none;
+                }
+                
+                .touch-ready .touch-drag-handle,
+                .touch-feedback .touch-drag-handle {
+                    color: #3b82f6;
+                    opacity: 1;
                 }
             }
             
@@ -835,6 +951,86 @@ class DragDropEditor {
             
             .code-editor-header button:active {
                 background: #262c36 !important;
+            }
+
+            /* Code Editor Container Fixes */
+            .code-editor-container .CodeMirror,
+            .code-editor-container textarea {
+                height: 400px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            .code-editor {
+                min-height: 400px !important;
+                overflow: hidden !important;
+            }
+            
+            /* Ensure CodeMirror displays properly */
+            .CodeMirror-wrap {
+                height: 400px !important;
+            }
+            
+            .CodeMirror-scroll {
+                height: 400px !important;
+                overflow-y: auto !important;
+                overflow-x: auto !important;
+            }
+            
+            /* Modal adjustments for code editor */
+            [data-modal-id="code-modal"] .modal-body {
+                padding: 1rem !important;
+                overflow: visible !important;
+            }
+            
+            [data-modal-id="code-modal"] .modal {
+                max-height: 90vh !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            
+            [data-modal-id="code-modal"] .modal-body {
+                flex: 1 !important;
+                overflow-y: auto !important;
+            }
+            
+            /* Better code formatting display */
+            .CodeMirror pre {
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+            }
+            
+            /* Syntax highlighting improvements for the generated code */
+            .cm-comment {
+                color: #7c7c7c !important;
+                font-style: italic !important;
+            }
+            
+            .cm-string {
+                color: #a9c5a8 !important;
+            }
+            
+            .cm-number {
+                color: #d19a66 !important;
+            }
+            
+            .cm-atom {
+                color: #c678dd !important;
+            }
+            
+            .cm-variable-2 {
+                color: #56b6c2 !important;
+            }
+            
+            .cm-property {
+                color: #e06c75 !important;
+            }
+            
+            .cm-qualifier {
+                color: #d19a66 !important;
             }
         `);
     }
@@ -2988,6 +3184,9 @@ class DragDropEditor {
     }
 
     generateCode() {
+        console.log('Generate code called');
+        console.log('Current structure length:', this.currentStructure.length);
+
         if (this.currentStructure.length === 0) {
             this.originalWeaver.toast('Add some components to the canvas first!', 'warning', 3000);
             return;
@@ -2999,8 +3198,74 @@ class DragDropEditor {
         document.body.appendChild(codeContainer);
 
         const codeWeaver = new WebWeaver(codeContainer.id);
-        codeWeaver.setTheme('default'); // Force dark theme
+        codeWeaver.setTheme('default');
 
+        let code = this.generateFormattedCode();
+        console.log('Generated code length:', code.length);
+        console.log('Generated code preview:', code.substring(0, 200) + '...');
+
+        codeWeaver
+            .h3('📋 Generated Web Weaver App')
+            .paragraph('This code will recreate your website. Save it as app.js:')
+            .divStart('code-editor-container', '', {
+                style: 'margin: 1rem 0; border: 1px solid #374151; border-radius: 8px; overflow: hidden;'
+            })
+            .divStart('code-editor-header', '', {
+                style: 'background: #161b22; color: #e6edf3; padding: 0.75rem; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;'
+            })
+            .text('app.js', 'span', '', '', {
+                style: 'font-weight: 600; color: #60a5fa;'
+            })
+            .flexContainer('flex gap-2')
+            .button('📋 Copy', () => {
+                this.copyCodeToClipboard(code);
+            }, 'btn btn-small', 'copy-code-btn', {
+                style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
+            })
+            .button('💾 Download', () => {
+                this.downloadCode(code, 'app.js');
+            }, 'btn btn-small', 'download-code-btn', {
+                style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
+            })
+            .divEnd()
+            .divEnd()
+            .divStart('code-editor', 'code-editor', {
+                style: 'height: 400px; width: 100%; background: #0d1117; color: #e6edf3; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 14px; line-height: 1.5; overflow: hidden; position: relative;'
+            })
+            .divEnd()
+            .divEnd();
+
+        // Create the modal
+        this.originalWeaver.createModal('💾 Generated Code', codeContainer, {
+            id: 'code-modal',
+            size: 'large',
+            closeOnBackdrop: false,
+            showCloseButton: true,
+            onOpen: () => {
+                console.log('Code modal opened, initializing editor...');
+                setTimeout(() => {
+                    this.initializeCodeMirror(codeContainer, code);
+
+                    const modal = document.querySelector('[data-modal-id="code-modal"]');
+                    if (modal) {
+                        modal.setAttribute('data-theme', 'default');
+                        this.forceDarkThemeOnElement(modal);
+                    }
+                }, 200);
+            },
+            onClose: () => {
+                if (codeContainer.parentNode) {
+                    codeContainer.parentNode.removeChild(codeContainer);
+                }
+                if (window.codeMirrorInstance) {
+                    window.codeMirrorInstance.toTextArea();
+                    delete window.codeMirrorInstance;
+                }
+            }
+        });
+    }
+
+    generateFormattedCode() {
         let code = `// Generated Web Weaver App
     // Save this as app.js and include it in your HTML
 
@@ -3010,18 +3275,34 @@ class DragDropEditor {
     // Clear any existing content and start building
     weaver.clear()`;
 
+        let indentLevel = 1; // Start with one level of indentation
+        const indentSize = 4; // 4 spaces per indent level
+        const containerStack = []; // Track open containers
+
         this.currentStructure.forEach(item => {
             const { component, params } = item;
             if (!component) return;
 
+            const indent = ' '.repeat(indentLevel * indentSize);
+
             // Handle different component types
             if (component.isClosing) {
-                code += `\n    .${component.method}()`;
+                // Closing component - decrease indent before adding the line
+                if (containerStack.length > 0) {
+                    containerStack.pop();
+                    indentLevel = Math.max(1, indentLevel - 1);
+                }
+                const closingIndent = ' '.repeat(indentLevel * indentSize);
+                code += `\n${closingIndent}.${component.method}()`;
             } else if (component.method === 'button') {
                 const clickHandler = params[1] && params[1].trim() !== ''
                     ? params[1]
                     : '() => { console.log("Button clicked!"); }';
-                code += `\n    .${component.method}('${params[0] || 'Button'}', ${clickHandler}, '${params[2] || 'btn'}'${params[3] ? `, '${params[3]}'` : ''}${params[4] ? `, { style: '${params[4]}' }` : ''})`;
+                
+                // Format multi-line click handlers properly
+                const formattedHandler = this.formatJavaScriptCode(clickHandler, indentLevel + 1);
+                
+                code += `\n${indent}.${component.method}('${params[0] || 'Button'}', ${formattedHandler}, '${params[2] || 'btn'}'${params[3] ? `, '${params[3]}'` : ''}${params[4] ? `, { style: '${params[4]}' }` : ''})`;
             } else if (component.method === 'heading') {
                 const level = params[0] || '1';
                 const text = params[1] || 'Heading Text';
@@ -3029,13 +3310,33 @@ class DragDropEditor {
                 const id = params[3] || '';
                 const style = params[4] || '';
 
-                code += `\n    .h${level}('${text}'${className ? `, '${className}'` : ''}${id ? `, '${id}'` : ''}${style ? `, { style: '${style}' }` : ''})`;
+                code += `\n${indent}.h${level}('${text}'${className ? `, '${className}'` : ''}${id ? `, '${id}'` : ''}${style ? `, { style: '${style}' }` : ''})`;
+            } else if (component.method === 'jsVariable') {
+                const type = params[0] || 'const';
+                const name = params[1] || 'myVariable';
+                const value = params[2] || '"value"';
+                code += `\n${indent}// JavaScript Variable\n${indent}.jsVariable('${type}', '${name}', '${value}')`;
+            } else if (component.method === 'jsFunction') {
+                const funcName = params[0] || 'myFunction';
+                const funcParams = params[1] || '';
+                const body = params[2] || 'console.log("Hello!");';
+                const formattedBody = this.formatJavaScriptCode(body, indentLevel + 1);
+                code += `\n${indent}// JavaScript Function\n${indent}.jsFunction('${funcName}', '${funcParams}', \`${formattedBody}\`)`;
+            } else if (component.method === 'canvasScript') {
+                const canvasId = params[0] || 'myCanvas';
+                const script = params[1] || 'Canvas drawing code';
+                const formattedScript = this.formatJavaScriptCode(script, indentLevel + 1);
+                code += `\n${indent}// Canvas Drawing Script\n${indent}.canvasScript('${canvasId}', \`${formattedScript}\`)`;
             } else {
                 const formattedParams = params.map((p, index) => {
                     if (typeof p === 'string') {
                         // Handle style parameter specially
-                        if (component.params[index] === 'style' && p) {
+                        if (component.params && component.params[index] === 'style' && p) {
                             return `{ style: '${p.replace(/'/g, "\\'")}' }`;
+                        }
+                        // Handle multi-line strings
+                        if (p.includes('\n')) {
+                            return '`' + p.replace(/`/g, '\\`') + '`';
                         }
                         return `'${p.replace(/'/g, "\\'")}'`;
                     }
@@ -3047,81 +3348,69 @@ class DragDropEditor {
                     formattedParams.pop();
                 }
 
-                if (formattedParams.length > 0) {
-                    code += `\n    .${component.method}(${formattedParams.join(', ')})`;
-                } else {
-                    code += `\n    .${component.method}()`;
+                // Add comment for special components
+                if (component.isComment) {
+                    code += `\n${indent}// Comment Component`;
+                } else if (component.isJavaScript) {
+                    code += `\n${indent}// JavaScript Component`;
+                } else if (component.isCanvasComponent) {
+                    code += `\n${indent}// Canvas Component`;
                 }
+
+                if (formattedParams.length > 0) {
+                    // Check if we need to break long parameter lists
+                    const paramString = formattedParams.join(', ');
+                    if (paramString.length > 60) {
+                        // Multi-line parameters for readability
+                        const paramIndent = ' '.repeat((indentLevel + 1) * indentSize);
+                        const formattedParamString = formattedParams.join(`,\n${paramIndent}`);
+                        code += `\n${indent}.${component.method}(\n${paramIndent}${formattedParamString}\n${indent})`;
+                    } else {
+                        code += `\n${indent}.${component.method}(${paramString})`;
+                    }
+                } else {
+                    code += `\n${indent}.${component.method}()`;
+                }
+            }
+
+            // Track containers for proper indentation
+            if (component.isContainer && !component.isClosing) {
+                containerStack.push(component);
+                indentLevel++;
             }
         });
 
         code += `;\n\n// Optional: Save the current state
-    // weaver.saveData('myWebsite', weaver.getCurrentHTML());`;
+    // weaver.saveData('myWebsite', weaver.getCurrentHTML());
 
-        codeWeaver
-            .h3('📋 Generated Web Weaver App')
-            .paragraph('This code will recreate your website. Save it as app.js:')
-            .divStart('code-editor-container', '', {
-                style: 'margin: 1rem 0; border: 1px solid #374151; border-radius: 8px; overflow: hidden;'
-            })
-            .divStart('code-editor-header', '', {
-                style: 'background: #111827; color: #f9fafb; padding: 0.75rem; border-bottom: 1px solid #374151; display: flex; justify-content: space-between; align-items: center;'
-            })
-            .text('app.js', 'span', '', '', {
-                style: 'font-weight: 600; color: #60a5fa;'
-            })
-            .flexContainer('flex gap-2')
-            .button('📋 Copy', () => {
-                this.copyCodeToClipboard(code);
-            }, 'btn btn-small', '', {
-                style: 'background: #374151; border: 1px solid #4b5563; color: #f9fafb; padding: 0.25rem 0.5rem; font-size: 0.8rem;'
-            })
-            .button('💾 Download', () => {
-                this.downloadCode(code, 'app.js');
-            }, 'btn btn-small', '', {
-                style: 'background: #374151; border: 1px solid #4b5563; color: #f9fafb; padding: 0.25rem 0.5rem; font-size: 0.8rem;'
-            })
-            .divEnd()
-            .divEnd()
-            .divStart('code-editor', 'code-editor', {
-                style: 'height: 400px; width: 100%; background: #0d1117; color: #e6edf3; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 14px; line-height: 1.5; overflow: hidden;'
-            })
-            .divEnd()
-            .divEnd();
+    // Optional: Add some interactive functionality
+    /*
+    // Example: Add click handlers to buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        // Your custom JavaScript code here
+        console.log('Website loaded successfully!');
+    });
+    */`;
 
-        // Create the modal with specific options to prevent closing on outside click
-        this.originalWeaver.createModal('💾 Generated Code', codeContainer, {
-            id: 'code-modal',
-            size: 'large',
-            closeOnBackdrop: false, // Prevent closing when clicking outside
-            showCloseButton: true,
-            onOpen: () => {
-                // Initialize CodeMirror after modal is shown
-                setTimeout(() => {
-                    this.initializeCodeMirror(codeContainer, code);
-                    
-                    // Force theme on code modal
-                    const modal = document.querySelector('[data-modal-id="code-modal"]');
-                    if (modal) {
-                        modal.setAttribute('data-theme', 'default');
-                        this.forceDarkThemeOnElement(modal);
-                        
-                        // Override modal backdrop behavior to prevent auto-close
-                        this.setupCodeModalEventHandlers(modal);
-                    }
-                }, 100);
-            },
-            onClose: () => {
-                if (codeContainer.parentNode) {
-                    codeContainer.parentNode.removeChild(codeContainer);
-                }
-                // Clean up any CodeMirror instances
-                if (window.codeMirrorInstance) {
-                    window.codeMirrorInstance.toTextArea();
-                    delete window.codeMirrorInstance;
-                }
-            }
-        });
+        return code;
+    }
+
+    // Helper method to format JavaScript code with proper indentation
+    formatJavaScriptCode(code, baseIndentLevel) {
+        if (!code || !code.includes('\n')) {
+            return code;
+        }
+
+        const lines = code.split('\n');
+        const indentSize = 4;
+        const baseIndent = ' '.repeat(baseIndentLevel * indentSize);
+
+        return lines
+            .map((line, index) => {
+                if (index === 0) return line; // First line doesn't need extra indent
+                return baseIndent + line.trim();
+            })
+            .join('\n');
     }
 
     setupCodeModalEventHandlers(modal) {
@@ -3131,7 +3420,7 @@ class DragDropEditor {
             // Clone the backdrop to remove all event listeners
             const newBackdrop = modalBackdrop.cloneNode(true);
             modalBackdrop.parentNode.replaceChild(newBackdrop, modalBackdrop);
-            
+
             // Add custom event handler that only closes on explicit close button click
             newBackdrop.addEventListener('click', (e) => {
                 // Only close if clicking directly on backdrop, not on modal content
@@ -3143,16 +3432,16 @@ class DragDropEditor {
                 }
             });
         }
-        
+
         // Prevent mouseup/mousedown events from closing the modal
         modal.addEventListener('mouseup', (e) => {
             e.stopPropagation();
         });
-        
+
         modal.addEventListener('mousedown', (e) => {
             e.stopPropagation();
         });
-        
+
         // Add explicit close functionality only to close button
         const closeButton = modal.querySelector('.modal-close, [data-dismiss="modal"]');
         if (closeButton) {
@@ -3166,88 +3455,115 @@ class DragDropEditor {
 
     // Initialize CodeMirror with dark theme
     initializeCodeMirror(container, code) {
+        console.log('initializeCodeMirror called with code length:', code.length);
+        
         const editorElement = container.querySelector('.code-editor');
-        if (!editorElement) return;
-
-        // Check if CodeMirror is available
-        if (typeof CodeMirror === 'undefined') {
-            // Fallback to a styled textarea if CodeMirror is not available
-            this.createFallbackCodeEditor(editorElement, code);
+        if (!editorElement) {
+            console.error('Code editor element not found in container');
+            console.log('Container HTML:', container.innerHTML);
             return;
         }
 
-        try {
-            // Create CodeMirror instance
-            const editor = CodeMirror(editorElement, {
-                value: code,
-                mode: 'javascript',
-                theme: 'material-darker', // Dark theme
-                lineNumbers: true,
-                lineWrapping: true,
-                readOnly: false,
-                indentUnit: 4,
-                tabSize: 4,
-                indentWithTabs: false,
-                autoCloseBrackets: true,
-                matchBrackets: true,
-                foldGutter: true,
-                gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-                extraKeys: {
-                    'Ctrl-A': 'selectAll',
-                    'Ctrl-C': 'copy',
-                    'Ctrl-F': 'findPersistent',
-                    'Ctrl-H': 'replace',
-                    'F11': function(cm) {
-                        cm.setOption('fullScreen', !cm.getOption('fullScreen'));
-                    },
-                    'Esc': function(cm) {
-                        if (cm.getOption('fullScreen')) cm.setOption('fullScreen', false);
+        console.log('Found editor element:', editorElement);
+        console.log('Editor element dimensions:', editorElement.offsetWidth, 'x', editorElement.offsetHeight);
+
+        // Check if CodeMirror is available and working
+        if (typeof CodeMirror !== 'undefined') {
+            try {
+                console.log('Attempting to use CodeMirror...');
+                
+                // Clear the editor element first
+                editorElement.innerHTML = '';
+                
+                // Create CodeMirror instance
+                const editor = CodeMirror(editorElement, {
+                    value: code,
+                    mode: 'javascript',
+                    theme: 'material-darker',
+                    lineNumbers: true,
+                    lineWrapping: true,
+                    readOnly: false,
+                    indentUnit: 4,
+                    tabSize: 4,
+                    indentWithTabs: false,
+                    autoCloseBrackets: true,
+                    matchBrackets: true,
+                    foldGutter: true,
+                    gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+                    extraKeys: {
+                        'Ctrl-A': 'selectAll',
+                        'Ctrl-C': 'copy',
+                        'Ctrl-F': 'findPersistent',
+                        'Ctrl-H': 'replace',
+                        'F11': function(cm) {
+                            cm.setOption('fullScreen', !cm.getOption('fullScreen'));
+                        },
+                        'Esc': function(cm) {
+                            if (cm.getOption('fullScreen')) cm.setOption('fullScreen', false);
+                        }
                     }
+                });
+
+                // Apply dark styling
+                const wrapper = editor.getWrapperElement();
+                wrapper.style.cssText = `
+                    background: #0d1117 !important;
+                    color: #e6edf3 !important;
+                    border: none !important;
+                    height: 400px !important;
+                    width: 100% !important;
+                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+                    font-size: 14px !important;
+                `;
+
+                // Store reference for cleanup
+                window.codeMirrorInstance = editor;
+
+                // Update buttons to use CodeMirror content with correct IDs
+                const copyButton = container.querySelector('#copy-code-btn');
+                if (copyButton) {
+                    copyButton.onclick = () => {
+                        this.copyCodeToClipboard(editor.getValue());
+                    };
                 }
-            });
 
-            // Apply custom dark styling
-            editor.getWrapperElement().style.cssText = `
-                background: #0d1117 !important;
-                color: #e6edf3 !important;
-                border: none !important;
-                height: 400px !important;
-                font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
-                font-size: 14px !important;
-            `;
+                const downloadButton = container.querySelector('#download-code-btn');
+                if (downloadButton) {
+                    downloadButton.onclick = () => {
+                        this.downloadCode(editor.getValue(), 'app.js');
+                    };
+                }
 
-            // Store reference for cleanup
-            window.codeMirrorInstance = editor;
+                // Force refresh and set content
+                setTimeout(() => {
+                    editor.refresh();
+                    editor.setValue(code);
+                    editor.focus();
+                    console.log('CodeMirror initialized and content set. Value length:', editor.getValue().length);
+                }, 100);
 
-            // Update copy button to use editor content
-            const copyButton = container.querySelector('button');
-            if (copyButton) {
-                copyButton.onclick = () => {
-                    this.copyCodeToClipboard(editor.getValue());
-                };
+                console.log('CodeMirror initialized successfully');
+                return;
+
+            } catch (error) {
+                console.error('Error initializing CodeMirror:', error);
+                // Fall through to fallback editor
             }
-
-            // Update download button to use editor content
-            const downloadButton = container.querySelectorAll('button')[1];
-            if (downloadButton) {
-                downloadButton.onclick = () => {
-                    this.downloadCode(editor.getValue(), 'app.js');
-                };
-            }
-
-            // Refresh editor after a short delay to ensure proper rendering
-            setTimeout(() => {
-                editor.refresh();
-            }, 200);
-
-        } catch (error) {
-            console.error('Error initializing CodeMirror:', error);
-            this.createFallbackCodeEditor(editorElement, code);
+        } else {
+            console.warn('CodeMirror not available, using fallback editor');
         }
+
+        // Use fallback editor
+        this.createFallbackCodeEditor(editorElement, code);
     }
 
     // Fallback editor if CodeMirror is not available
     createFallbackCodeEditor(editorElement, code) {
+        console.log('Creating fallback editor with code length:', code.length);
+
+        // Clear the editor element first
+        editorElement.innerHTML = '';
+
         const textarea = document.createElement('textarea');
         textarea.value = code;
         textarea.style.cssText = `
@@ -3266,8 +3582,16 @@ class DragDropEditor {
             white-space: pre;
             overflow-wrap: normal;
             overflow-x: auto;
+            box-sizing: border-box;
+            display: block;
+            visibility: visible;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         `;
-        
+
         // Handle tab key for indentation
         textarea.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') {
@@ -3278,27 +3602,35 @@ class DragDropEditor {
                 textarea.selectionStart = textarea.selectionEnd = start + 4;
             }
         });
-        
-        editorElement.innerHTML = '';
-        editorElement.appendChild(textarea);
-        
-        // Update buttons to use textarea content
-        const container = editorElement.closest('#code-' + editorElement.id.split('-')[1]);
-        if (container) {
-            const copyButton = container.querySelector('button');
-            if (copyButton) {
-                copyButton.onclick = () => {
-                    this.copyCodeToClipboard(textarea.value);
-                };
-            }
 
-            const downloadButton = container.querySelectorAll('button')[1];
-            if (downloadButton) {
-                downloadButton.onclick = () => {
-                    this.downloadCode(textarea.value, 'app.js');
-                };
-            }
+        // Add textarea to editor element
+        editorElement.appendChild(textarea);
+
+        console.log('Fallback editor created and appended. Textarea value length:', textarea.value.length);
+
+        // Update buttons to use textarea content
+        const copyButton = editorElement.closest('[id^="code-"]').querySelector('#copy-btn');
+        if (copyButton) {
+            copyButton.onclick = () => {
+                this.copyCodeToClipboard(textarea.value);
+            };
         }
+
+        const downloadButton = editorElement.closest('[id^="code-"]').querySelector('#download-btn');
+        if (downloadButton) {
+            downloadButton.onclick = () => {
+                this.downloadCode(textarea.value, 'app.js');
+            };
+        }
+
+        // Focus the textarea and scroll to top
+        setTimeout(() => {
+            textarea.focus();
+            textarea.scrollTop = 0;
+            console.log('Fallback editor focused. Final check - textarea value length:', textarea.value.length);
+            console.log('Textarea visible?', textarea.offsetWidth > 0 && textarea.offsetHeight > 0);
+            console.log('Parent element visible?', editorElement.offsetWidth > 0 && editorElement.offsetHeight > 0);
+        }, 100);
     }
 
     // Improved copy to clipboard method
@@ -3325,7 +3657,7 @@ class DragDropEditor {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        
+
         try {
             document.execCommand('copy');
             this.originalWeaver.toast('Code copied to clipboard!', 'success', 2000);
@@ -3333,7 +3665,7 @@ class DragDropEditor {
             console.error('Fallback copy failed: ', err);
             this.originalWeaver.toast('Failed to copy code. Please select and copy manually.', 'error', 3000);
         }
-        
+
         document.body.removeChild(textArea);
     }
 
@@ -3345,79 +3677,86 @@ class DragDropEditor {
         }
 
         return new Promise((resolve, reject) => {
-            // Load CodeMirror CSS
+            console.log('Loading CodeMirror assets...');
+
+            // Load CSS first
             const cssLink = document.createElement('link');
             cssLink.rel = 'stylesheet';
             cssLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css';
             document.head.appendChild(cssLink);
 
-            // Load CodeMirror dark theme CSS
+            // Load theme CSS
             const themeLink = document.createElement('link');
             themeLink.rel = 'stylesheet';
             themeLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-darker.min.css';
             document.head.appendChild(themeLink);
 
-            // Load CodeMirror JS
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js';
-            script.onload = () => {
+            // Load main CodeMirror JS
+            const mainScript = document.createElement('script');
+            mainScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js';
+
+            mainScript.onload = () => {
+                console.log('CodeMirror main script loaded');
+
                 // Load JavaScript mode
                 const jsMode = document.createElement('script');
                 jsMode.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js';
+
                 jsMode.onload = () => {
-                    // Load additional addons
+                    console.log('CodeMirror JavaScript mode loaded');
+
+                    // Load addons
                     const addons = [
                         'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js',
                         'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/search.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/searchcursor.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.js',
                         'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldcode.min.js',
                         'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.js',
-                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/brace-fold.min.js',
-                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/searchcursor.min.js',
-                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/search.min.js',
-                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.js',
-                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/display/fullscreen.min.js'
+                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/brace-fold.min.js'
                     ];
 
-                    const addonCSS = [
-                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.css',
-                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.css',
-                        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/display/fullscreen.min.css'
-                    ];
-
-                    // Load addon CSS
-                    addonCSS.forEach(href => {
-                        const link = document.createElement('link');
-                        link.rel = 'stylesheet';
-                        link.href = href;
-                        document.head.appendChild(link);
-                    });
-
-                    // Load addon scripts
                     let loadedAddons = 0;
-                    addons.forEach(src => {
+
+                    const loadNextAddon = () => {
+                        if (loadedAddons >= addons.length) {
+                            console.log('All CodeMirror addons loaded successfully');
+                            resolve();
+                            return;
+                        }
+
                         const addonScript = document.createElement('script');
-                        addonScript.src = src;
+                        addonScript.src = addons[loadedAddons];
                         addonScript.onload = () => {
                             loadedAddons++;
-                            if (loadedAddons === addons.length) {
-                                resolve();
-                            }
+                            loadNextAddon();
                         };
                         addonScript.onerror = () => {
-                            console.warn('Failed to load CodeMirror addon:', src);
+                            console.warn(`Failed to load addon: ${addons[loadedAddons]}`);
                             loadedAddons++;
-                            if (loadedAddons === addons.length) {
-                                resolve();
-                            }
+                            loadNextAddon();
                         };
                         document.head.appendChild(addonScript);
-                    });
+                    };
+
+                    loadNextAddon();
                 };
-                jsMode.onerror = reject;
+
+                jsMode.onerror = () => {
+                    console.warn('Failed to load CodeMirror JavaScript mode');
+                    resolve(); // Still resolve to continue with fallback
+                };
+
                 document.head.appendChild(jsMode);
             };
-            script.onerror = reject;
-            document.head.appendChild(script);
+
+            mainScript.onerror = () => {
+                console.warn('Failed to load CodeMirror main script');
+                reject(new Error('Failed to load CodeMirror'));
+            };
+
+            document.head.appendChild(mainScript);
         });
     }
 
@@ -3548,22 +3887,62 @@ class DragDropEditor {
         let touchStartTime = null;
         let isDragging = false;
         let dragElement = null;
+        let dragTimer = null;
+        let hasMoved = false;
 
         const startTouch = (e) => {
-            e.preventDefault();
+            // Don't prevent default immediately - let scrolling work normally
             touchStartPos = {
                 x: e.touches[0].clientX,
                 y: e.touches[0].clientY
             };
             touchStartTime = Date.now();
+            hasMoved = false;
+            isDragging = false;
 
-            // Add touch feedback
-            element.classList.add('touch-feedback');
+            // Add visual feedback for potential drag
+            element.classList.add('touch-ready');
 
-            // Haptic feedback if available
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
+            // Set a timer for drag initiation (1 second hold)
+            dragTimer = setTimeout(() => {
+                if (!hasMoved && !isDragging) {
+                    // Initiate drag after 1 second hold without movement
+                    e.preventDefault(); // Now prevent default to stop scrolling
+                    
+                    isDragging = true;
+                    element.classList.add('touch-feedback');
+                    element.classList.remove('touch-ready');
+
+                    if (source === 'panel') {
+                        const componentId = element.getAttribute('data-component-id');
+                        this.draggedElement = this.components.find(c => c.id === componentId);
+                        this.draggedFrom = 'panel';
+                    } else {
+                        this.draggedElement = element;
+                        this.draggedFrom = 'canvas';
+                    }
+
+                    // Create drag element
+                    dragElement = this.createTouchDragElement(element);
+                    document.body.appendChild(dragElement);
+
+                    element.classList.add('touch-dragging');
+
+                    // Show drop zones
+                    this.showTouchDropZones();
+
+                    // Haptic feedback if available
+                    if (navigator.vibrate) {
+                        navigator.vibrate([100, 50, 100]); // Pattern for drag start
+                    }
+
+                    // Update drag element position
+                    if (touchStartPos) {
+                        dragElement.style.left = touchStartPos.x - 50 + 'px';
+                        dragElement.style.top = touchStartPos.y - 25 + 'px';
+                    }
+                }
+            }, 1000); // 1 second delay
         };
 
         const moveTouch = (e) => {
@@ -3579,30 +3958,25 @@ class DragDropEditor {
                 Math.pow(currentPos.y - touchStartPos.y, 2)
             );
 
-            // Start dragging if moved more than 10px
+            // If moved more than 10px, it's a scroll gesture, not a drag
             if (distance > 10 && !isDragging) {
-                isDragging = true;
-
-                if (source === 'panel') {
-                    const componentId = element.getAttribute('data-component-id');
-                    this.draggedElement = this.components.find(c => c.id === componentId);
-                    this.draggedFrom = 'panel';
-                } else {
-                    this.draggedElement = element;
-                    this.draggedFrom = 'canvas';
+                hasMoved = true;
+                element.classList.remove('touch-ready');
+                
+                // Clear the drag timer
+                if (dragTimer) {
+                    clearTimeout(dragTimer);
+                    dragTimer = null;
                 }
-
-                // Create drag element
-                dragElement = this.createTouchDragElement(element);
-                document.body.appendChild(dragElement);
-
-                element.classList.add('touch-dragging');
-
-                // Show drop zones
-                this.showTouchDropZones();
+                
+                // Let the scroll happen naturally
+                return;
             }
 
+            // If we're already dragging, prevent default and update drag position
             if (isDragging && dragElement) {
+                e.preventDefault();
+                
                 // Update drag element position
                 dragElement.style.left = currentPos.x - 50 + 'px';
                 dragElement.style.top = currentPos.y - 25 + 'px';
@@ -3613,9 +3987,17 @@ class DragDropEditor {
         };
 
         const endTouch = (e) => {
-            element.classList.remove('touch-feedback');
+            // Clear the drag timer
+            if (dragTimer) {
+                clearTimeout(dragTimer);
+                dragTimer = null;
+            }
+
+            element.classList.remove('touch-feedback', 'touch-ready');
 
             if (isDragging) {
+                e.preventDefault(); // Prevent any default behavior when ending a drag
+                
                 const dropTarget = this.getTouchDropTarget(
                     e.changedTouches[0].clientX,
                     e.changedTouches[0].clientY
@@ -3640,7 +4022,7 @@ class DragDropEditor {
 
                 // Haptic feedback
                 if (navigator.vibrate) {
-                    navigator.vibrate(dropTarget ? [100, 50, 100] : 200);
+                    navigator.vibrate(dropTarget ? [50, 30, 50] : 100); // Different pattern for success/failure
                 }
             }
 
@@ -3648,6 +4030,36 @@ class DragDropEditor {
             touchStartPos = null;
             touchStartTime = null;
             isDragging = false;
+            hasMoved = false;
+            this.draggedElement = null;
+            this.draggedFrom = null;
+        };
+
+        const cancelTouch = (e) => {
+            // Clear the drag timer
+            if (dragTimer) {
+                clearTimeout(dragTimer);
+                dragTimer = null;
+            }
+
+            element.classList.remove('touch-feedback', 'touch-ready');
+
+            if (isDragging) {
+                // Cleanup drag state
+                if (dragElement) {
+                    document.body.removeChild(dragElement);
+                    dragElement = null;
+                }
+
+                element.classList.remove('touch-dragging');
+                this.hideTouchDropZones();
+            }
+
+            // Reset state
+            touchStartPos = null;
+            touchStartTime = null;
+            isDragging = false;
+            hasMoved = false;
             this.draggedElement = null;
             this.draggedFrom = null;
         };
@@ -3656,7 +4068,7 @@ class DragDropEditor {
         element.addEventListener('touchstart', startTouch, { passive: false });
         element.addEventListener('touchmove', moveTouch, { passive: false });
         element.addEventListener('touchend', endTouch, { passive: false });
-        element.addEventListener('touchcancel', endTouch, { passive: false });
+        element.addEventListener('touchcancel', cancelTouch, { passive: false });
     }
 
     handleResponsiveLayout() {
@@ -4156,12 +4568,12 @@ class DragDropEditor {
 
     findMatchingClosingComponent(allComponents, startIndex, startComponentInstance) {
         let nestingCount = 1;
-        
+
         // Look for the matching closing component
         for (let i = startIndex + 1; i < allComponents.length; i++) {
             const comp = allComponents[i];
             const instance = comp._componentInstance;
-            
+
             if (!instance) continue;
 
             // Check if this is a container of the same type
@@ -4180,7 +4592,7 @@ class DragDropEditor {
                 }
             }
         }
-        
+
         return -1; // No matching closing component found
     }
 
@@ -4204,7 +4616,7 @@ class DragDropEditor {
             'bodyStart': 'body',
             'footerStart': 'footer'
         };
-        
+
         return containerTypes[componentInstance.method] || componentInstance.method;
     }
 
@@ -4228,7 +4640,7 @@ class DragDropEditor {
             'bodyEnd': 'bodyStart',
             'footerEnd': 'footerStart'
         };
-        
+
         return closingMatches[closingInstance.method] === openingInstance.method;
     }
 
@@ -4318,14 +4730,14 @@ class DragDropEditor {
         const componentInstance = component._componentInstance;
         const canvas = document.querySelector('.editor-canvas');
         const allComponents = [...canvas.querySelectorAll('.canvas-component')];
-        
+
         // Find the current component index
         const startIndex = allComponents.indexOf(component);
         if (startIndex === -1) return;
 
         // Find the matching closing component
         const closingComponentIndex = this.findMatchingClosingComponent(allComponents, startIndex, componentInstance);
-        
+
         if (closingComponentIndex === -1) {
             // No matching closing component found, treat as regular component
             this.toggleSingleComponentCollapse(component, collapseBtn);
@@ -4901,7 +5313,7 @@ class DragDropEditor {
         // Determine collapse button icon and title based on component type and state
         let collapseIcon = '🔽';
         let collapseTitle = 'Collapse component';
-        
+
         if (customData.groupCollapsed) {
             collapseIcon = '📁';
             collapseTitle = 'Expand group';
@@ -5376,20 +5788,20 @@ class DragDropEditor {
 
     processGroupCollapses() {
         const componentsNeedingGroupCollapse = document.querySelectorAll('[data-needs-group-collapse="true"]');
-        
+
         componentsNeedingGroupCollapse.forEach(component => {
             const instanceId = component.getAttribute('data-instance-id');
             const componentInstance = component._componentInstance;
-            
+
             if (componentInstance && componentInstance.isContainer && !componentInstance.isClosing) {
                 // Find and hide the group contents
                 const canvas = document.querySelector('.editor-canvas');
                 const allComponents = [...canvas.querySelectorAll('.canvas-component')];
                 const startIndex = allComponents.indexOf(component);
-                
+
                 if (startIndex !== -1) {
                     const closingComponentIndex = this.findMatchingClosingComponent(allComponents, startIndex, componentInstance);
-                    
+
                     if (closingComponentIndex !== -1) {
                         // Hide all components between start and end
                         for (let i = startIndex + 1; i < closingComponentIndex; i++) {
@@ -5397,18 +5809,18 @@ class DragDropEditor {
                             childComponent.classList.add('group-hidden');
                             childComponent.style.display = 'none';
                         }
-                        
+
                         // Hide the closing component too
                         const closingComponent = allComponents[closingComponentIndex];
                         closingComponent.classList.add('group-hidden');
                         closingComponent.style.display = 'none';
-                        
+
                         // Update the preview to show summary
                         this.updateGroupCollapsedPreview(component, closingComponentIndex - startIndex - 1);
                     }
                 }
             }
-            
+
             // Remove the processing flag
             component.removeAttribute('data-needs-group-collapse');
         });
@@ -5439,12 +5851,12 @@ class DragDropEditor {
 
         // Update nesting levels after all components are added
         this.updateNestingLevels();
-        
+
         // Process group collapses after all components are loaded
         setTimeout(() => {
             this.processGroupCollapses();
             this.updateStructure();
-            
+
             // Force theme reapplication after deserialization
             this.detectAndApplyCurrentTheme();
             this.forceCompleteThemeReapplication();
