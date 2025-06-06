@@ -3220,86 +3220,102 @@ class DragDropEditor {
     }
 
     generateCode() {
-        console.log('Generate code called');
-        console.log('Current structure length:', this.currentStructure.length);
+    console.log('Generate code called');
+    console.log('Current structure length:', this.currentStructure.length);
 
-        if (this.currentStructure.length === 0) {
-            this.originalWeaver.toast('Add some components to the canvas first!', 'warning', 3000);
-            return;
-        }
-
-        // Create code display container
-        const codeContainer = document.createElement('div');
-        codeContainer.id = 'code-' + Date.now();
-        document.body.appendChild(codeContainer);
-
-        const codeWeaver = new WebWeaver(codeContainer.id);
-        codeWeaver.setTheme('default');
-
-        let code = this.generateFormattedCode();
-        console.log('Generated code length:', code.length);
-        console.log('Generated code preview:', code.substring(0, 200) + '...');
-
-        codeWeaver
-            .h3('📋 Generated Web Weaver App')
-            .paragraph('This code will recreate your website. Save it as app.js:')
-            .divStart('code-editor-container', '', {
-                style: 'margin: 1rem 0; border: 1px solid #374151; border-radius: 8px; overflow: hidden;'
-            })
-            .divStart('code-editor-header', '', {
-                style: 'background: #161b22; color: #e6edf3; padding: 0.75rem; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;'
-            })
-            .text('app.js', 'span', '', '', {
-                style: 'font-weight: 600; color: #60a5fa;'
-            })
-            .flexContainer('flex gap-2')
-            .button('📋 Copy', () => {
-                this.copyCodeToClipboard(code);
-            }, 'btn btn-small', 'copy-code-btn', {
-                style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
-            })
-            .button('💾 Download', () => {
-                this.downloadCode(code, 'app.js');
-            }, 'btn btn-small', 'download-code-btn', {
-                style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
-            })
-            .divEnd()
-            .divEnd()
-            .divStart('code-editor', 'code-editor', {
-                style: 'height: 400px; width: 100%; background: #0d1117; color: #e6edf3; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 14px; line-height: 1.5; overflow: hidden; position: relative;'
-            })
-            .divEnd()
-            .divEnd();
-
-        // Create the modal
-        this.originalWeaver.createModal('💾 Generated Code', codeContainer, {
-            id: 'code-modal',
-            size: 'large',
-            closeOnBackdrop: false,
-            showCloseButton: true,
-            onOpen: () => {
-                console.log('Code modal opened, initializing editor...');
-                setTimeout(() => {
-                    this.initializeCodeMirror(codeContainer, code);
-
-                    const modal = document.querySelector('[data-modal-id="code-modal"]');
-                    if (modal) {
-                        modal.setAttribute('data-theme', 'default');
-                        this.forceDarkThemeOnElement(modal);
-                    }
-                }, 200);
-            },
-            onClose: () => {
-                if (codeContainer.parentNode) {
-                    codeContainer.parentNode.removeChild(codeContainer);
-                }
-                if (window.codeMirrorInstance) {
-                    window.codeMirrorInstance.toTextArea();
-                    delete window.codeMirrorInstance;
-                }
-            }
-        });
+    if (this.currentStructure.length === 0) {
+        this.originalWeaver.toast('Add some components to the canvas first!', 'warning', 3000);
+        return;
     }
+
+    // Create code display container
+    const codeContainer = document.createElement('div');
+    codeContainer.id = 'code-' + Date.now();
+    document.body.appendChild(codeContainer);
+
+    const codeWeaver = new WebWeaver(codeContainer.id);
+    codeWeaver.setTheme('default');
+
+    let code = this.generateFormattedCode();
+    console.log('Generated code length:', code.length);
+    console.log('Generated code preview:', code.substring(0, 200) + '...');
+
+    // Ensure we have some code
+    if (!code || code.trim().length === 0) {
+        code = `// No components found to generate code
+// Please add some components to the canvas first
+const weaver = new WebWeaver('app-container');
+weaver.clear();`;
+    }
+
+    const uniqueId = Date.now();
+
+    codeWeaver
+        .h3('📋 Generated Web Weaver App')
+        .paragraph('This code will recreate your website. Save it as app.js:')
+        .divStart('code-editor-container', `code-container-${uniqueId}`, {
+            style: 'margin: 1rem 0; border: 1px solid #374151; border-radius: 8px; overflow: hidden;'
+        })
+        .divStart('code-editor-header', `code-header-${uniqueId}`, {
+            style: 'background: #161b22; color: #e6edf3; padding: 0.75rem; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;'
+        })
+        .text('app.js', 'span', '', '', {
+            style: 'font-weight: 600; color: #60a5fa;'
+        })
+        .flexContainer('flex gap-2')
+        .button('📋 Copy', () => {
+            this.copyCodeToClipboard(code);
+        }, 'btn btn-small', `copy-btn-${uniqueId}`, {
+            style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
+        })
+        .button('💾 Download', () => {
+            this.downloadCode(code, 'app.js');
+        }, 'btn btn-small', `download-btn-${uniqueId}`, {
+            style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
+        })
+        .divEnd()
+        .divEnd()
+        .divStart('code-editor', `code-editor-${uniqueId}`, {
+            style: 'height: 400px; width: 100%; background: #0d1117; color: #e6edf3; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 14px; line-height: 1.5; overflow: hidden; position: relative;'
+        })
+        .divEnd()
+        .divEnd();
+
+    // Create the modal
+    this.originalWeaver.createModal('💾 Generated Code', codeContainer, {
+        id: 'code-modal',
+        size: 'large',
+        closeOnBackdrop: false,
+        showCloseButton: true,
+        onOpen: () => {
+            console.log('Code modal opened, initializing editor...');
+            setTimeout(() => {
+                const editorElement = document.getElementById(`code-editor-${uniqueId}`);
+                console.log('Looking for editor element with ID:', `code-editor-${uniqueId}`);
+                console.log('Found editor element:', editorElement);
+                
+                if (editorElement) {
+                    console.log('Creating fallback editor...');
+                    this.createFallbackCodeEditor(editorElement, code, uniqueId);
+                } else {
+                    console.error('Editor element not found!');
+                    console.log('Available elements in container:', codeContainer.querySelectorAll('*'));
+                }
+
+                const modal = document.querySelector('[data-modal-id="code-modal"]');
+                if (modal) {
+                    modal.setAttribute('data-theme', 'default');
+                    this.forceDarkThemeOnElement(modal);
+                }
+            }, 200);
+        },
+        onClose: () => {
+            if (codeContainer.parentNode) {
+                codeContainer.parentNode.removeChild(codeContainer);
+            }
+        }
+    });
+}
 
     generateFormattedCode() {
         let code = `// Generated Web Weaver App
@@ -3594,14 +3610,112 @@ class DragDropEditor {
     }
 
     // Fallback editor if CodeMirror is not available
+    createFallbackCodeEditor(editorElement, code, uniqueId) {
+    console.log('Creating fallback editor with code length:', code.length);
+    console.log('Editor element:', editorElement);
+
+    if (!editorElement) {
+        console.error('Editor element not found');
+        return;
+    }
+
+    // Clear the editor element first
+    editorElement.innerHTML = '';
+    editorElement.style.position = 'relative';
+
+    const textarea = document.createElement('textarea');
+    textarea.value = code;
+    textarea.id = `code-textarea-${uniqueId}`;
+    textarea.style.cssText = `
+        width: 100%;
+        height: 400px;
+        background: #0d1117;
+        color: #e6edf3;
+        border: none;
+        padding: 1rem;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        resize: none;
+        outline: none;
+        tab-size: 4;
+        white-space: pre;
+        overflow-wrap: normal;
+        overflow-x: auto;
+        box-sizing: border-box;
+        display: block;
+        visibility: visible;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: 0;
+    `;
+
+    // Handle tab key for indentation
+    textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, start) + '    ' + textarea.value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + 4;
+        }
+    });
+
+    // Add textarea to editor element
+    editorElement.appendChild(textarea);
+
+    console.log('Textarea created and appended. Value length:', textarea.value.length);
+
+    // Update buttons to use textarea content
+    const copyButton = document.getElementById(`copy-btn-${uniqueId}`);
+    const downloadButton = document.getElementById(`download-btn-${uniqueId}`);
+
+    if (copyButton) {
+        copyButton.onclick = () => {
+            console.log('Copy button clicked, code length:', textarea.value.length);
+            this.copyCodeToClipboard(textarea.value);
+        };
+        console.log('Copy button updated');
+    } else {
+        console.log('Copy button not found with ID:', `copy-btn-${uniqueId}`);
+    }
+
+    if (downloadButton) {
+        downloadButton.onclick = () => {
+            console.log('Download button clicked, code length:', textarea.value.length);
+            this.downloadCode(textarea.value, 'app.js');
+        };
+        console.log('Download button updated');
+    } else {
+        console.log('Download button not found with ID:', `download-btn-${uniqueId}`);
+    }
+
+    // Focus the textarea and scroll to top
+    setTimeout(() => {
+        textarea.focus();
+        textarea.scrollTop = 0;
+        console.log('Textarea focused. Final check - visible:', textarea.offsetWidth > 0 && textarea.offsetHeight > 0);
+        console.log('Textarea parent visible:', editorElement.offsetWidth > 0 && editorElement.offsetHeight > 0);
+    }, 100);
+}
+    
     createFallbackCodeEditor(editorElement, code) {
         console.log('Creating fallback editor with code length:', code.length);
+
+        if (!editorElement) {
+            console.error('Editor element not found');
+            return;
+        }
 
         // Clear the editor element first
         editorElement.innerHTML = '';
 
         const textarea = document.createElement('textarea');
         textarea.value = code;
+        textarea.id = 'code-textarea-' + Date.now();
         textarea.style.cssText = `
             width: 100%;
             height: 400px;
@@ -3621,11 +3735,6 @@ class DragDropEditor {
             box-sizing: border-box;
             display: block;
             visibility: visible;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
         `;
 
         // Handle tab key for indentation
@@ -3642,30 +3751,31 @@ class DragDropEditor {
         // Add textarea to editor element
         editorElement.appendChild(textarea);
 
-        console.log('Fallback editor created and appended. Textarea value length:', textarea.value.length);
+        console.log('Fallback editor created. Textarea value length:', textarea.value.length);
 
         // Update buttons to use textarea content
-        const copyButton = editorElement.closest('[id^="code-"]').querySelector('#copy-btn');
-        if (copyButton) {
-            copyButton.onclick = () => {
-                this.copyCodeToClipboard(textarea.value);
-            };
-        }
+        const container = editorElement.closest('[id^="code-"]');
+        if (container) {
+            const copyButton = container.querySelector('.copy-code-btn');
+            if (copyButton) {
+                copyButton.onclick = () => {
+                    this.copyCodeToClipboard(textarea.value);
+                };
+            }
 
-        const downloadButton = editorElement.closest('[id^="code-"]').querySelector('#download-btn');
-        if (downloadButton) {
-            downloadButton.onclick = () => {
-                this.downloadCode(textarea.value, 'app.js');
-            };
+            const downloadButton = container.querySelector('.download-code-btn');
+            if (downloadButton) {
+                downloadButton.onclick = () => {
+                    this.downloadCode(textarea.value, 'app.js');
+                };
+            }
         }
 
         // Focus the textarea and scroll to top
         setTimeout(() => {
             textarea.focus();
             textarea.scrollTop = 0;
-            console.log('Fallback editor focused. Final check - textarea value length:', textarea.value.length);
-            console.log('Textarea visible?', textarea.offsetWidth > 0 && textarea.offsetHeight > 0);
-            console.log('Parent element visible?', editorElement.offsetWidth > 0 && editorElement.offsetHeight > 0);
+            console.log('Fallback editor focused. Final textarea value length:', textarea.value.length);
         }, 100);
     }
 
