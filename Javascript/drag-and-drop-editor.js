@@ -1060,6 +1060,32 @@ class DragDropEditor {
             .component-info {
                 flex: 1;
             }
+
+            /* Fullscreen preview modal styles */
+            [data-modal-id="preview-modal"] .modal {
+                width: 95vw !important;
+                height: 95vh !important;
+                max-width: 95vw !important;
+                max-height: 95vh !important;
+                margin: 2.5vh auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+
+            [data-modal-id="preview-modal"] .modal-body {
+                flex: 1 !important;
+                overflow: auto !important;
+                padding: 1rem !important;
+            }
+
+            [data-modal-id="preview-modal"] .modal-header {
+                flex-shrink: 0 !important;
+            }
+
+            /* Make preview content responsive */
+            [data-modal-id="preview-modal"] .modal-body > div {
+                min-height: 100% !important;
+            }
         `);
     }
 
@@ -1848,6 +1874,128 @@ class DragDropEditor {
                 defaultParams: [],
                 category: 'structure',
                 isClosing: true
+            },
+
+            // Modal
+            {
+                id: 'modalStart',
+                name: 'Modal Container',
+                icon: '📱',
+                description: 'Start a modal container',
+                method: 'modalStart',
+                params: ['title', 'size', 'className', 'id', 'options'],
+                defaultParams: ['Modal Title', 'medium', '', '', ''],
+                category: 'modals',
+                isContainer: true,
+                needsClosing: true,
+                styleOptions: ['backgroundColor', 'border', 'borderRadius', 'boxShadow', 'padding', 'margin', 'width', 'height', 'maxWidth', 'maxHeight'],
+                eventOptions: ['onOpen', 'onClose']
+            },
+            {
+                id: 'modalEnd',
+                name: 'Close Modal',
+                icon: '📱✕',
+                description: 'Closes modal container',
+                method: 'modalEnd',
+                params: [],
+                defaultParams: [],
+                category: 'modals',
+                isClosing: true
+            },
+            {
+                id: 'modalTrigger',
+                name: 'Modal Trigger Button',
+                icon: '🔘',
+                description: 'Button that opens a modal',
+                method: 'modalTrigger',
+                params: ['buttonText', 'modalId', 'buttonClass', 'buttonId', 'buttonStyle'],
+                defaultParams: ['Open Modal', 'myModal', 'btn', '', ''],
+                category: 'modals',
+                styleOptions: ['backgroundColor', 'color', 'border', 'borderRadius', 'padding', 'margin', 'fontSize', 'fontWeight'],
+                eventOptions: ['onClick', 'onHover']
+            },
+            {
+                id: 'modalHeader',
+                name: 'Modal Header',
+                icon: '📋',
+                description: 'Modal header section',
+                method: 'modalHeader',
+                params: ['className', 'id', 'style'],
+                defaultParams: ['', '', ''],
+                category: 'modals',
+                isContainer: true,
+                needsClosing: true,
+                styleOptions: ['backgroundColor', 'border', 'borderRadius', 'padding', 'margin', 'textAlign']
+            },
+            {
+                id: 'modalHeaderEnd',
+                name: 'Close Modal Header',
+                icon: '📋✕',
+                description: 'Closes modal header',
+                method: 'modalHeaderEnd',
+                params: [],
+                defaultParams: [],
+                category: 'modals',
+                isClosing: true
+            },
+            {
+                id: 'modalBody',
+                name: 'Modal Body',
+                icon: '📄',
+                description: 'Modal body/content section',
+                method: 'modalBody',
+                params: ['className', 'id', 'style'],
+                defaultParams: ['', '', ''],
+                category: 'modals',
+                isContainer: true,
+                needsClosing: true,
+                styleOptions: ['backgroundColor', 'border', 'borderRadius', 'padding', 'margin', 'maxHeight', 'overflow']
+            },
+            {
+                id: 'modalBodyEnd',
+                name: 'Close Modal Body',
+                icon: '📄✕',
+                description: 'Closes modal body',
+                method: 'modalBodyEnd',
+                params: [],
+                defaultParams: [],
+                category: 'modals',
+                isClosing: true
+            },
+            {
+                id: 'modalFooter',
+                name: 'Modal Footer',
+                icon: '🦶',
+                description: 'Modal footer section',
+                method: 'modalFooter',
+                params: ['className', 'id', 'style'],
+                defaultParams: ['', '', ''],
+                category: 'modals',
+                isContainer: true,
+                needsClosing: true,
+                styleOptions: ['backgroundColor', 'border', 'borderRadius', 'padding', 'margin', 'textAlign', 'justifyContent']
+            },
+            {
+                id: 'modalFooterEnd',
+                name: 'Close Modal Footer',
+                icon: '🦶✕',
+                description: 'Closes modal footer',
+                method: 'modalFooterEnd',
+                params: [],
+                defaultParams: [],
+                category: 'modals',
+                isClosing: true
+            },
+            {
+                id: 'modalCloseButton',
+                name: 'Modal Close Button',
+                icon: '✕',
+                description: 'Button to close the current modal',
+                method: 'modalCloseButton',
+                params: ['buttonText', 'className', 'id', 'style'],
+                defaultParams: ['Close', 'btn btn-secondary', '', ''],
+                category: 'modals',
+                styleOptions: ['backgroundColor', 'color', 'border', 'borderRadius', 'padding', 'margin', 'fontSize']
             }
         ];
     }
@@ -3220,102 +3368,102 @@ class DragDropEditor {
     }
 
     generateCode() {
-    console.log('Generate code called');
-    console.log('Current structure length:', this.currentStructure.length);
+        console.log('Generate code called');
+        console.log('Current structure length:', this.currentStructure.length);
 
-    if (this.currentStructure.length === 0) {
-        this.originalWeaver.toast('Add some components to the canvas first!', 'warning', 3000);
-        return;
-    }
+        if (this.currentStructure.length === 0) {
+            this.originalWeaver.toast('Add some components to the canvas first!', 'warning', 3000);
+            return;
+        }
 
-    // Create code display container
-    const codeContainer = document.createElement('div');
-    codeContainer.id = 'code-' + Date.now();
-    document.body.appendChild(codeContainer);
+        // Create code display container
+        const codeContainer = document.createElement('div');
+        codeContainer.id = 'code-' + Date.now();
+        document.body.appendChild(codeContainer);
 
-    const codeWeaver = new WebWeaver(codeContainer.id);
-    codeWeaver.setTheme('default');
+        const codeWeaver = new WebWeaver(codeContainer.id);
+        codeWeaver.setTheme('default');
 
-    let code = this.generateFormattedCode();
-    console.log('Generated code length:', code.length);
-    console.log('Generated code preview:', code.substring(0, 200) + '...');
+        let code = this.generateFormattedCode();
+        console.log('Generated code length:', code.length);
+        console.log('Generated code preview:', code.substring(0, 200) + '...');
 
-    // Ensure we have some code
-    if (!code || code.trim().length === 0) {
-        code = `// No components found to generate code
+        // Ensure we have some code
+        if (!code || code.trim().length === 0) {
+            code = `// No components found to generate code
 // Please add some components to the canvas first
 const weaver = new WebWeaver('app-container');
 weaver.clear();`;
-    }
-
-    const uniqueId = Date.now();
-
-    codeWeaver
-        .h3('📋 Generated Web Weaver App')
-        .paragraph('This code will recreate your website. Save it as app.js:')
-        .divStart('code-editor-container', `code-container-${uniqueId}`, {
-            style: 'margin: 1rem 0; border: 1px solid #374151; border-radius: 8px; overflow: hidden;'
-        })
-        .divStart('code-editor-header', `code-header-${uniqueId}`, {
-            style: 'background: #161b22; color: #e6edf3; padding: 0.75rem; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;'
-        })
-        .text('app.js', 'span', '', '', {
-            style: 'font-weight: 600; color: #60a5fa;'
-        })
-        .flexContainer('flex gap-2')
-        .button('📋 Copy', () => {
-            this.copyCodeToClipboard(code);
-        }, 'btn btn-small', `copy-btn-${uniqueId}`, {
-            style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
-        })
-        .button('💾 Download', () => {
-            this.downloadCode(code, 'app.js');
-        }, 'btn btn-small', `download-btn-${uniqueId}`, {
-            style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
-        })
-        .divEnd()
-        .divEnd()
-        .divStart('code-editor', `code-editor-${uniqueId}`, {
-            style: 'height: 400px; width: 100%; background: #0d1117; color: #e6edf3; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 14px; line-height: 1.5; overflow: hidden; position: relative;'
-        })
-        .divEnd()
-        .divEnd();
-
-    // Create the modal
-    this.originalWeaver.createModal('💾 Generated Code', codeContainer, {
-        id: 'code-modal',
-        size: 'large',
-        closeOnBackdrop: false,
-        showCloseButton: true,
-        onOpen: () => {
-            console.log('Code modal opened, initializing editor...');
-            setTimeout(() => {
-                const editorElement = document.getElementById(`code-editor-${uniqueId}`);
-                console.log('Looking for editor element with ID:', `code-editor-${uniqueId}`);
-                console.log('Found editor element:', editorElement);
-                
-                if (editorElement) {
-                    console.log('Creating fallback editor...');
-                    this.createFallbackCodeEditor(editorElement, code, uniqueId);
-                } else {
-                    console.error('Editor element not found!');
-                    console.log('Available elements in container:', codeContainer.querySelectorAll('*'));
-                }
-
-                const modal = document.querySelector('[data-modal-id="code-modal"]');
-                if (modal) {
-                    modal.setAttribute('data-theme', 'default');
-                    this.forceDarkThemeOnElement(modal);
-                }
-            }, 200);
-        },
-        onClose: () => {
-            if (codeContainer.parentNode) {
-                codeContainer.parentNode.removeChild(codeContainer);
-            }
         }
-    });
-}
+
+        const uniqueId = Date.now();
+
+        codeWeaver
+            .h3('📋 Generated Web Weaver App')
+            .paragraph('This code will recreate your website. Save it as app.js:')
+            .divStart('code-editor-container', `code-container-${uniqueId}`, {
+                style: 'margin: 1rem 0; border: 1px solid #374151; border-radius: 8px; overflow: hidden;'
+            })
+            .divStart('code-editor-header', `code-header-${uniqueId}`, {
+                style: 'background: #161b22; color: #e6edf3; padding: 0.75rem; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;'
+            })
+            .text('app.js', 'span', '', '', {
+                style: 'font-weight: 600; color: #60a5fa;'
+            })
+            .flexContainer('flex gap-2')
+            .button('📋 Copy', () => {
+                this.copyCodeToClipboard(code);
+            }, 'btn btn-small', `copy-btn-${uniqueId}`, {
+                style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
+            })
+            .button('💾 Download', () => {
+                this.downloadCode(code, 'app.js');
+            }, 'btn btn-small', `download-btn-${uniqueId}`, {
+                style: 'background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.375rem 0.75rem; border-radius: 4px; font-size: 0.875rem;'
+            })
+            .divEnd()
+            .divEnd()
+            .divStart('code-editor', `code-editor-${uniqueId}`, {
+                style: 'height: 400px; width: 100%; background: #0d1117; color: #e6edf3; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 14px; line-height: 1.5; overflow: hidden; position: relative;'
+            })
+            .divEnd()
+            .divEnd();
+
+        // Create the modal
+        this.originalWeaver.createModal('💾 Generated Code', codeContainer, {
+            id: 'code-modal',
+            size: 'large',
+            closeOnBackdrop: false,
+            showCloseButton: true,
+            onOpen: () => {
+                console.log('Code modal opened, initializing editor...');
+                setTimeout(() => {
+                    const editorElement = document.getElementById(`code-editor-${uniqueId}`);
+                    console.log('Looking for editor element with ID:', `code-editor-${uniqueId}`);
+                    console.log('Found editor element:', editorElement);
+
+                    if (editorElement) {
+                        console.log('Creating fallback editor...');
+                        this.createFallbackCodeEditor(editorElement, code, uniqueId);
+                    } else {
+                        console.error('Editor element not found!');
+                        console.log('Available elements in container:', codeContainer.querySelectorAll('*'));
+                    }
+
+                    const modal = document.querySelector('[data-modal-id="code-modal"]');
+                    if (modal) {
+                        modal.setAttribute('data-theme', 'default');
+                        this.forceDarkThemeOnElement(modal);
+                    }
+                }, 200);
+            },
+            onClose: () => {
+                if (codeContainer.parentNode) {
+                    codeContainer.parentNode.removeChild(codeContainer);
+                }
+            }
+        });
+    }
 
     generateFormattedCode() {
         let code = `// Generated Web Weaver App
@@ -3350,10 +3498,10 @@ weaver.clear();`;
                 const clickHandler = params[1] && params[1].trim() !== ''
                     ? params[1]
                     : '() => { console.log("Button clicked!"); }';
-                
+
                 // Format multi-line click handlers properly
                 const formattedHandler = this.formatJavaScriptCode(clickHandler, indentLevel + 1);
-                
+
                 code += `\n${indent}.${component.method}('${params[0] || 'Button'}', ${formattedHandler}, '${params[2] || 'btn'}'${params[3] ? `, '${params[3]}'` : ''}${params[4] ? `, { style: '${params[4]}' }` : ''})`;
             } else if (component.method === 'heading') {
                 const level = params[0] || '1';
@@ -3508,7 +3656,7 @@ weaver.clear();`;
     // Initialize CodeMirror with dark theme
     initializeCodeMirror(container, code) {
         console.log('initializeCodeMirror called with code length:', code.length);
-        
+
         const editorElement = container.querySelector('.code-editor');
         if (!editorElement) {
             console.error('Code editor element not found in container');
@@ -3523,10 +3671,10 @@ weaver.clear();`;
         if (typeof CodeMirror !== 'undefined') {
             try {
                 console.log('Attempting to use CodeMirror...');
-                
+
                 // Clear the editor element first
                 editorElement.innerHTML = '';
-                
+
                 // Create CodeMirror instance
                 const editor = CodeMirror(editorElement, {
                     value: code,
@@ -3547,10 +3695,10 @@ weaver.clear();`;
                         'Ctrl-C': 'copy',
                         'Ctrl-F': 'findPersistent',
                         'Ctrl-H': 'replace',
-                        'F11': function(cm) {
+                        'F11': function (cm) {
                             cm.setOption('fullScreen', !cm.getOption('fullScreen'));
                         },
-                        'Esc': function(cm) {
+                        'Esc': function (cm) {
                             if (cm.getOption('fullScreen')) cm.setOption('fullScreen', false);
                         }
                     }
@@ -3611,22 +3759,22 @@ weaver.clear();`;
 
     // Fallback editor if CodeMirror is not available
     createFallbackCodeEditor(editorElement, code, uniqueId) {
-    console.log('Creating fallback editor with code length:', code.length);
-    console.log('Editor element:', editorElement);
+        console.log('Creating fallback editor with code length:', code.length);
+        console.log('Editor element:', editorElement);
 
-    if (!editorElement) {
-        console.error('Editor element not found');
-        return;
-    }
+        if (!editorElement) {
+            console.error('Editor element not found');
+            return;
+        }
 
-    // Clear the editor element first
-    editorElement.innerHTML = '';
-    editorElement.style.position = 'relative';
+        // Clear the editor element first
+        editorElement.innerHTML = '';
+        editorElement.style.position = 'relative';
 
-    const textarea = document.createElement('textarea');
-    textarea.value = code;
-    textarea.id = `code-textarea-${uniqueId}`;
-    textarea.style.cssText = `
+        const textarea = document.createElement('textarea');
+        textarea.value = code;
+        textarea.id = `code-textarea-${uniqueId}`;
+        textarea.style.cssText = `
         width: 100%;
         height: 400px;
         background: #0d1117;
@@ -3653,90 +3801,6 @@ weaver.clear();`;
         margin: 0;
     `;
 
-    // Handle tab key for indentation
-    textarea.addEventListener('keydown', (e) => {
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            textarea.value = textarea.value.substring(0, start) + '    ' + textarea.value.substring(end);
-            textarea.selectionStart = textarea.selectionEnd = start + 4;
-        }
-    });
-
-    // Add textarea to editor element
-    editorElement.appendChild(textarea);
-
-    console.log('Textarea created and appended. Value length:', textarea.value.length);
-
-    // Update buttons to use textarea content
-    const copyButton = document.getElementById(`copy-btn-${uniqueId}`);
-    const downloadButton = document.getElementById(`download-btn-${uniqueId}`);
-
-    if (copyButton) {
-        copyButton.onclick = () => {
-            console.log('Copy button clicked, code length:', textarea.value.length);
-            this.copyCodeToClipboard(textarea.value);
-        };
-        console.log('Copy button updated');
-    } else {
-        console.log('Copy button not found with ID:', `copy-btn-${uniqueId}`);
-    }
-
-    if (downloadButton) {
-        downloadButton.onclick = () => {
-            console.log('Download button clicked, code length:', textarea.value.length);
-            this.downloadCode(textarea.value, 'app.js');
-        };
-        console.log('Download button updated');
-    } else {
-        console.log('Download button not found with ID:', `download-btn-${uniqueId}`);
-    }
-
-    // Focus the textarea and scroll to top
-    setTimeout(() => {
-        textarea.focus();
-        textarea.scrollTop = 0;
-        console.log('Textarea focused. Final check - visible:', textarea.offsetWidth > 0 && textarea.offsetHeight > 0);
-        console.log('Textarea parent visible:', editorElement.offsetWidth > 0 && editorElement.offsetHeight > 0);
-    }, 100);
-}
-    
-    createFallbackCodeEditor(editorElement, code) {
-        console.log('Creating fallback editor with code length:', code.length);
-
-        if (!editorElement) {
-            console.error('Editor element not found');
-            return;
-        }
-
-        // Clear the editor element first
-        editorElement.innerHTML = '';
-
-        const textarea = document.createElement('textarea');
-        textarea.value = code;
-        textarea.id = 'code-textarea-' + Date.now();
-        textarea.style.cssText = `
-            width: 100%;
-            height: 400px;
-            background: #0d1117;
-            color: #e6edf3;
-            border: none;
-            padding: 1rem;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            resize: none;
-            outline: none;
-            tab-size: 4;
-            white-space: pre;
-            overflow-wrap: normal;
-            overflow-x: auto;
-            box-sizing: border-box;
-            display: block;
-            visibility: visible;
-        `;
-
         // Handle tab key for indentation
         textarea.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') {
@@ -3751,31 +3815,38 @@ weaver.clear();`;
         // Add textarea to editor element
         editorElement.appendChild(textarea);
 
-        console.log('Fallback editor created. Textarea value length:', textarea.value.length);
+        console.log('Textarea created and appended. Value length:', textarea.value.length);
 
         // Update buttons to use textarea content
-        const container = editorElement.closest('[id^="code-"]');
-        if (container) {
-            const copyButton = container.querySelector('.copy-code-btn');
-            if (copyButton) {
-                copyButton.onclick = () => {
-                    this.copyCodeToClipboard(textarea.value);
-                };
-            }
+        const copyButton = document.getElementById(`copy-btn-${uniqueId}`);
+        const downloadButton = document.getElementById(`download-btn-${uniqueId}`);
 
-            const downloadButton = container.querySelector('.download-code-btn');
-            if (downloadButton) {
-                downloadButton.onclick = () => {
-                    this.downloadCode(textarea.value, 'app.js');
-                };
-            }
+        if (copyButton) {
+            copyButton.onclick = () => {
+                console.log('Copy button clicked, code length:', textarea.value.length);
+                this.copyCodeToClipboard(textarea.value);
+            };
+            console.log('Copy button updated');
+        } else {
+            console.log('Copy button not found with ID:', `copy-btn-${uniqueId}`);
+        }
+
+        if (downloadButton) {
+            downloadButton.onclick = () => {
+                console.log('Download button clicked, code length:', textarea.value.length);
+                this.downloadCode(textarea.value, 'app.js');
+            };
+            console.log('Download button updated');
+        } else {
+            console.log('Download button not found with ID:', `download-btn-${uniqueId}`);
         }
 
         // Focus the textarea and scroll to top
         setTimeout(() => {
             textarea.focus();
             textarea.scrollTop = 0;
-            console.log('Fallback editor focused. Final textarea value length:', textarea.value.length);
+            console.log('Textarea focused. Final check - visible:', textarea.offsetWidth > 0 && textarea.offsetHeight > 0);
+            console.log('Textarea parent visible:', editorElement.offsetWidth > 0 && editorElement.offsetHeight > 0);
         }, 100);
     }
 
@@ -4054,7 +4125,7 @@ weaver.clear();`;
                 if (!hasMoved && !isDragging) {
                     // Initiate drag after 1 second hold without movement
                     e.preventDefault(); // Now prevent default to stop scrolling
-                    
+
                     isDragging = true;
                     element.classList.add('touch-feedback');
                     element.classList.remove('touch-ready');
@@ -4108,13 +4179,13 @@ weaver.clear();`;
             if (distance > 10 && !isDragging) {
                 hasMoved = true;
                 element.classList.remove('touch-ready');
-                
+
                 // Clear the drag timer
                 if (dragTimer) {
                     clearTimeout(dragTimer);
                     dragTimer = null;
                 }
-                
+
                 // Let the scroll happen naturally
                 return;
             }
@@ -4122,7 +4193,7 @@ weaver.clear();`;
             // If we're already dragging, prevent default and update drag position
             if (isDragging && dragElement) {
                 e.preventDefault();
-                
+
                 // Update drag element position
                 dragElement.style.left = currentPos.x - 50 + 'px';
                 dragElement.style.top = currentPos.y - 25 + 'px';
@@ -4143,7 +4214,7 @@ weaver.clear();`;
 
             if (isDragging) {
                 e.preventDefault(); // Prevent any default behavior when ending a drag
-                
+
                 const dropTarget = this.getTouchDropTarget(
                     e.changedTouches[0].clientX,
                     e.changedTouches[0].clientY
@@ -6181,7 +6252,7 @@ weaver.clear();`;
 
         this.previewWeaver = new WebWeaver(previewContainer.id);
 
-        // Apply current theme to preview (default to default)
+        // Apply current theme to preview
         let currentTheme = this.originalWeaver.getCurrentTheme();
         if (!currentTheme || currentTheme === 'default') {
             currentTheme = 'default';
@@ -6191,26 +6262,106 @@ weaver.clear();`;
         // Build the preview
         this.previewWeaver.clear();
 
+        // Track container stack for proper preview rendering
+        const containerStack = [];
+
         this.currentStructure.forEach(item => {
             const { component, params } = item;
             if (!component) return;
 
             try {
                 if (component.isClosing) {
-                    this.previewWeaver[component.method]();
+                    // Handle closing components more carefully
+                    if (containerStack.length > 0) {
+                        const lastContainer = containerStack.pop();
+                        // Call the appropriate closing method based on the container type
+                        switch (component.method) {
+                            case 'divEnd':
+                            case 'sectionEnd':
+                            case 'flexContainerEnd':
+                            case 'cardEnd':
+                            case 'gridEnd':
+                            case 'containerEnd':
+                            case 'rowEnd':
+                            case 'colEnd':
+                            case 'formEnd':
+                            case 'listEnd':
+                            case 'navEnd':
+                            case 'modalEnd':
+                            case 'modalHeaderEnd':
+                            case 'modalBodyEnd':
+                            case 'modalFooterEnd':
+                            case 'scriptEnd':
+                            case 'footerEnd':
+                                try {
+                                    this.previewWeaver[component.method]();
+                                } catch (e) {
+                                    console.warn(`Could not close container with ${component.method}:`, e);
+                                    // Fallback to generic divEnd if specific method fails
+                                    try {
+                                        this.previewWeaver.divEnd();
+                                    } catch (e2) {
+                                        console.warn('Fallback divEnd also failed:', e2);
+                                    }
+                                }
+                                break;
+                            case 'htmlEnd':
+                            case 'headEnd':
+                            case 'bodyEnd':
+                                // These are document structure elements - skip them in preview
+                                console.log(`Skipping ${component.method} in preview`);
+                                break;
+                            default:
+                                try {
+                                    this.previewWeaver[component.method]();
+                                } catch (e) {
+                                    console.warn(`Unknown closing method ${component.method}:`, e);
+                                }
+                                break;
+                        }
+                    } else {
+                        console.warn(`Found closing component ${component.method} but no container to close`);
+                    }
                 } else {
-                    // Handle different component methods
+                    // Handle opening components
                     switch (component.method) {
                         case 'heading':
                             const level = params[0] || '1';
                             this.previewWeaver[`h${level}`](params[1] || 'Heading', params[2] || '', params[3] || '', params[4] ? { style: params[4] } : {});
                             break;
+
                         case 'button':
-                            const clickHandler = params[1] && params[1].trim() !== ''
-                                ? new Function('return ' + params[1])()
-                                : () => { console.log('Button clicked!'); };
-                            this.previewWeaver.button(params[0] || 'Button', clickHandler, params[2] || 'btn', params[3] || '', params[4] ? { style: params[4] } : {});
+                            // Enhanced button handling with proper event parsing
+                            let clickHandler = () => { console.log('Button clicked!'); };
+
+                            if (params[1] && params[1].trim() !== '') {
+                                try {
+                                    // Try to parse the click handler
+                                    if (params[1].includes('openModal') || params[1].includes('createModal')) {
+                                        // Handle modal creation within preview
+                                        clickHandler = new Function('weaver', `
+                                        const originalWeaver = weaver;
+                                        ${params[1]}
+                                    `).bind(null, this.previewWeaver);
+                                    } else {
+                                        clickHandler = new Function('return ' + params[1])();
+                                    }
+                                } catch (e) {
+                                    console.warn('Error parsing button click handler:', e);
+                                    // Fallback to simple function
+                                    clickHandler = new Function(params[1]);
+                                }
+                            }
+
+                            this.previewWeaver.button(
+                                params[0] || 'Button',
+                                clickHandler,
+                                params[2] || 'btn',
+                                params[3] || '',
+                                params[4] ? { style: params[4] } : {}
+                            );
                             break;
+
                         case 'select':
                             try {
                                 const options = JSON.parse(params[0] || '[]');
@@ -6219,47 +6370,55 @@ weaver.clear();`;
                                 this.previewWeaver.select([{ text: 'Option 1', value: '1' }], params[1] || '', params[2] || '', params[3] ? { style: params[3] } : {});
                             }
                             break;
-                        case 'canvasGradient':
-                            try {
-                                const colors = JSON.parse(params[5] || '["#ff6b6b", "#4ecdc4"]');
-                                this.previewWeaver.canvasGradient(params[0] || 'myCanvas', params[1] || '10', params[2] || '10', params[3] || '200', params[4] || '100', colors, params[6] || 'horizontal');
-                            } catch (e) {
-                                console.error('Error parsing colors for gradient:', e);
-                                this.previewWeaver.canvasGradient(params[0] || 'myCanvas', params[1] || '10', params[2] || '10', params[3] || '200', params[4] || '100', ['#ff6b6b', '#4ecdc4'], params[6] || 'horizontal');
-                            }
-                            break;
-                        case 'canvasPath':
-                            try {
-                                const points = JSON.parse(params[1] || '[]');
-                                this.previewWeaver.canvasPath(params[0] || 'myCanvas', points, params[2] || '#9b59b6', params[3] || '2', params[4] === 'true');
-                            } catch (e) {
-                                console.error('Error parsing points for path:', e);
-                                this.previewWeaver.canvasPath(params[0] || 'myCanvas', [{ "x": 10, "y": 10 }, { "x": 100, "y": 50 }], params[2] || '#9b59b6', params[3] || '2', params[4] === 'true');
-                            }
-                            break;
-                        default:
+
+                        // Handle container components
+                        case 'divStart':
+                        case 'section':
+                        case 'flexContainer':
+                        case 'card':
+                        case 'grid':
+                        case 'container':
+                        case 'row':
+                        case 'col':
+                        case 'formStart':
+                        case 'listStart':
+                        case 'navStart':
+                        case 'modalStart':
+                        case 'modalHeader':
+                        case 'modalBody':
+                        case 'modalFooter':
+                        case 'scriptStart':
+                        case 'footerStart':
+                            // Track container for proper closing
+                            containerStack.push({
+                                method: component.method,
+                                params: params
+                            });
+
                             // Apply parameters based on component definition
                             const methodParams = [];
                             component.params.forEach((param, index) => {
                                 if (param === 'style' && params[index]) {
                                     methodParams.push({ style: params[index] });
+                                } else if (param === 'onClick' && params[index]) {
+                                    // Handle onClick events properly
+                                    try {
+                                        if (params[index].includes('openModal') || params[index].includes('createModal')) {
+                                            methodParams.push(new Function('weaver', `
+                                            const originalWeaver = weaver;
+                                            ${params[index]}
+                                        `).bind(null, this.previewWeaver));
+                                        } else {
+                                            methodParams.push(new Function('return ' + params[index])());
+                                        }
+                                    } catch (e) {
+                                        methodParams.push(new Function(params[index]));
+                                    }
                                 } else if (param === 'options' && component.method === 'select') {
                                     try {
                                         methodParams.push(JSON.parse(params[index] || '[]'));
                                     } catch (e) {
                                         methodParams.push([{ text: 'Option 1', value: '1' }]);
-                                    }
-                                } else if (param === 'colors' && component.method === 'canvasGradient') {
-                                    try {
-                                        methodParams.push(JSON.parse(params[index] || '[]'));
-                                    } catch (e) {
-                                        methodParams.push(['#ff6b6b', '#4ecdc4']);
-                                    }
-                                } else if (param === 'points' && component.method === 'canvasPath') {
-                                    try {
-                                        methodParams.push(JSON.parse(params[index] || '[]'));
-                                    } catch (e) {
-                                        methodParams.push([{ "x": 10, "y": 10 }, { "x": 100, "y": 50 }]);
                                     }
                                 } else {
                                     methodParams.push(params[index] || '');
@@ -6273,24 +6432,111 @@ weaver.clear();`;
 
                             this.previewWeaver[component.method](...methodParams);
                             break;
+
+                        // Skip document structure elements in preview
+                        case 'htmlStart':
+                        case 'headStart':
+                        case 'bodyStart':
+                        case 'titleTag':
+                        case 'metaTag':
+                        case 'linkTag':
+                            console.log(`Skipping ${component.method} in preview - document structure element`);
+                            break;
+
+                        default:
+                            // Apply parameters based on component definition
+                            const defaultMethodParams = [];
+                            component.params.forEach((param, index) => {
+                                if (param === 'style' && params[index]) {
+                                    defaultMethodParams.push({ style: params[index] });
+                                } else if (param === 'onClick' && params[index]) {
+                                    // Handle onClick events properly
+                                    try {
+                                        if (params[index].includes('openModal') || params[index].includes('createModal')) {
+                                            defaultMethodParams.push(new Function('weaver', `
+                                            const originalWeaver = weaver;
+                                            ${params[index]}
+                                        `).bind(null, this.previewWeaver));
+                                        } else {
+                                            defaultMethodParams.push(new Function('return ' + params[index])());
+                                        }
+                                    } catch (e) {
+                                        defaultMethodParams.push(new Function(params[index]));
+                                    }
+                                } else if (param === 'options' && component.method === 'select') {
+                                    try {
+                                        defaultMethodParams.push(JSON.parse(params[index] || '[]'));
+                                    } catch (e) {
+                                        defaultMethodParams.push([{ text: 'Option 1', value: '1' }]);
+                                    }
+                                } else {
+                                    defaultMethodParams.push(params[index] || '');
+                                }
+                            });
+
+                            // Filter out empty parameters from the end
+                            while (defaultMethodParams.length > 0 && (defaultMethodParams[defaultMethodParams.length - 1] === '' || (typeof defaultMethodParams[defaultMethodParams.length - 1] === 'object' && Object.keys(defaultMethodParams[defaultMethodParams.length - 1]).length === 0))) {
+                                defaultMethodParams.pop();
+                            }
+
+                            this.previewWeaver[component.method](...defaultMethodParams);
+                            break;
+                    }
+
+                    // Track containers that need closing
+                    if (component.isContainer && !component.isClosing) {
+                        containerStack.push({
+                            method: component.method,
+                            params: params
+                        });
                     }
                 }
             } catch (error) {
                 console.error('Error rendering component in preview:', error, component);
-                // Continue with next component instead of breaking
+                // Continue with next component instead of failing completely
             }
         });
 
+        // Create full-screen modal
         this.originalWeaver.createModal('👁️ Website Preview', previewContainer, {
             id: 'preview-modal',
-            size: 'large',
+            size: 'fullscreen',
+            showCloseButton: true,
+            closeOnBackdrop: false,
             onOpen: () => {
-                // Force theme on preview modal if it's the default theme
                 setTimeout(() => {
                     const modal = document.querySelector('[data-modal-id="preview-modal"]');
-                    if (modal && currentTheme === 'default') {
-                        modal.setAttribute('data-theme', 'default');
-                        this.forceDarkThemeOnElement(modal);
+                    if (modal) {
+                        // Make modal take up most of the screen
+                        modal.style.setProperty('--modal-max-width', '95vw');
+                        modal.style.setProperty('--modal-max-height', '95vh');
+
+                        const modalDialog = modal.querySelector('.modal');
+                        if (modalDialog) {
+                            modalDialog.style.cssText = `
+                            width: 95vw !important;
+                            height: 95vh !important;
+                            max-width: 95vw !important;
+                            max-height: 95vh !important;
+                            margin: 2.5vh auto !important;
+                            display: flex !important;
+                            flex-direction: column !important;
+                        `;
+                        }
+
+                        const modalBody = modal.querySelector('.modal-body');
+                        if (modalBody) {
+                            modalBody.style.cssText = `
+                            flex: 1 !important;
+                            overflow: auto !important;
+                            padding: 1rem !important;
+                        `;
+                        }
+
+                        if (currentTheme === 'default') {
+                            modal.setAttribute('data-theme', 'default');
+                            this.forceDarkThemeOnElement(modal);
+                        }
                     }
                 }, 50);
             },

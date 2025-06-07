@@ -1055,6 +1055,342 @@ class WebWeaver {
         return this.divEnd();
     }
 
+    modalStart(title = 'Modal', size = 'medium', className = '', id = '', options = {}) {
+        const modalId = id || `modal-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Store modal info for later rendering
+        this.currentModalInfo = {
+            id: modalId,
+            title: title,
+            size: size,
+            className: className,
+            options: typeof options === 'string' ? this.parseOptionsString(options) : options
+        };
+        
+        // Start collecting modal content
+        this.modalContent = [];
+        this.isCapturingModal = true;
+        
+        return this;
+    }
+
+    modalEnd() {
+        if (!this.isCapturingModal || !this.currentModalInfo) {
+            console.warn('modalEnd called without matching modalStart');
+            return this;
+        }
+        
+        // Create the modal content container
+        const modalContentContainer = document.createElement('div');
+        modalContentContainer.id = `modal-content-${Date.now()}`;
+        
+        // Apply captured content to container
+        this.modalContent.forEach(contentItem => {
+            if (typeof contentItem === 'string') {
+                modalContentContainer.innerHTML += contentItem;
+            } else if (contentItem instanceof Element) {
+                modalContentContainer.appendChild(contentItem);
+            }
+        });
+        
+        // Create modal trigger and setup
+        this.createModalFromCapturedContent(modalContentContainer);
+        
+        // Reset modal capture state
+        this.isCapturingModal = false;
+        this.currentModalInfo = null;
+        this.modalContent = [];
+        
+        return this;
+    }
+
+    modalTrigger(buttonText = 'Open Modal', modalId = 'myModal', buttonClass = 'btn', buttonId = '', buttonStyle = '') {
+        return this.button(buttonText, () => {
+            // Find and open the modal by ID
+            const modalElement = document.querySelector(`[data-modal-id="${modalId}"]`);
+            if (modalElement) {
+                modalElement.style.display = 'flex';
+                modalElement.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            } else {
+                console.warn(`Modal with ID "${modalId}" not found`);
+            }
+        }, buttonClass, buttonId, buttonStyle ? { style: buttonStyle } : {});
+    }
+
+    modalHeader(className = '', id = '', style = '') {
+        if (this.isCapturingModal) {
+            this.modalContent.push('<div class="modal-header ' + className + '"' + (id ? ` id="${id}"` : '') + (style ? ` style="${style}"` : '') + '>');
+        } else {
+            this.divStart('modal-header ' + className, id, style ? { style } : {});
+        }
+        return this;
+    }
+
+    modalHeaderEnd() {
+        if (this.isCapturingModal) {
+            this.modalContent.push('</div>');
+        } else {
+            this.divEnd();
+        }
+        return this;
+    }
+
+    modalBody(className = '', id = '', style = '') {
+        if (this.isCapturingModal) {
+            this.modalContent.push('<div class="modal-body ' + className + '"' + (id ? ` id="${id}"` : '') + (style ? ` style="${style}"` : '') + '>');
+        } else {
+            this.divStart('modal-body ' + className, id, style ? { style } : {});
+        }
+        return this;
+    }
+
+    modalBodyEnd() {
+        if (this.isCapturingModal) {
+            this.modalContent.push('</div>');
+        } else {
+            this.divEnd();
+        }
+        return this;
+    }
+
+    modalFooter(className = '', id = '', style = '') {
+        if (this.isCapturingModal) {
+            this.modalContent.push('<div class="modal-footer ' + className + '"' + (id ? ` id="${id}"` : '') + (style ? ` style="${style}"` : '') + '>');
+        } else {
+            this.divStart('modal-footer ' + className, id, style ? { style } : {});
+        }
+        return this;
+    }
+
+    modalFooterEnd() {
+        if (this.isCapturingModal) {
+            this.modalContent.push('</div>');
+        } else {
+            this.divEnd();
+        }
+        return this;
+    }
+
+    modalCloseButton(buttonText = 'Close', className = 'btn btn-secondary', id = '', style = '') {
+        const closeHandler = () => {
+            // Find the parent modal and close it
+            const modalElement = document.querySelector('.modal-overlay.active');
+            if (modalElement) {
+                modalElement.classList.remove('active');
+                setTimeout(() => {
+                    modalElement.style.display = 'none';
+                    document.body.style.overflow = ''; // Restore scrolling
+                }, 300);
+            }
+        };
+        
+        if (this.isCapturingModal) {
+            // Store as a button element for modal content
+            const buttonElement = document.createElement('button');
+            buttonElement.className = className;
+            if (id) buttonElement.id = id;
+            if (style) buttonElement.style.cssText = style;
+            buttonElement.textContent = buttonText;
+            buttonElement.onclick = closeHandler;
+            this.modalContent.push(buttonElement);
+        } else {
+            this.button(buttonText, closeHandler, className, id, style ? { style } : {});
+        }
+        
+        return this;
+    }
+
+    // Helper method to create modal from captured content
+    createModalFromCapturedContent(contentContainer) {
+        const modalInfo = this.currentModalInfo;
+        
+        // Create modal overlay
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'modal-overlay';
+        modalOverlay.setAttribute('data-modal-id', modalInfo.id);
+        modalOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(2px);
+        `;
+        
+        // Create modal container
+        const modal = document.createElement('div');
+        modal.className = `modal modal-${modalInfo.size} ${modalInfo.className}`;
+        modal.style.cssText = `
+            background: var(--bg-color, #ffffff);
+            color: var(--text-color, #000000);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: hidden;
+            transform: scale(0.9) translateY(-20px);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--border-color, #e5e7eb);
+            display: flex;
+            flex-direction: column;
+        `;
+        
+        // Size classes
+        const sizeMap = {
+            small: '400px',
+            medium: '600px',
+            large: '800px',
+            xlarge: '1000px'
+        };
+        
+        if (sizeMap[modalInfo.size]) {
+            modal.style.width = sizeMap[modalInfo.size];
+        }
+        
+        // Add title if provided and no custom header found
+        const hasCustomHeader = contentContainer.querySelector('.modal-header');
+        if (modalInfo.title && !hasCustomHeader) {
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+            header.style.cssText = `
+                padding: 1.5rem;
+                border-bottom: 1px solid var(--border-color, #e5e7eb);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: var(--surface-color, #f9fafb);
+            `;
+            
+            const title = document.createElement('h3');
+            title.className = 'modal-title';
+            title.textContent = modalInfo.title;
+            title.style.cssText = `
+                margin: 0;
+                font-size: 1.25rem;
+                font-weight: bold;
+                color: var(--text-color, #000000);
+            `;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'modal-close';
+            closeBtn.innerHTML = '×';
+            closeBtn.style.cssText = `
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: var(--text-color, #000000);
+                padding: 0;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: background-color 0.2s ease;
+            `;
+            
+            closeBtn.onclick = () => {
+                modalOverlay.classList.remove('active');
+                setTimeout(() => {
+                    modalOverlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                }, 300);
+            };
+            
+            header.appendChild(title);
+            header.appendChild(closeBtn);
+            modal.appendChild(header);
+        }
+        
+        // Add captured content
+        if (!hasCustomHeader && !contentContainer.querySelector('.modal-body')) {
+            // Wrap content in modal-body if no custom body found
+            const body = document.createElement('div');
+            body.className = 'modal-body';
+            body.style.cssText = `
+                padding: 1.5rem;
+                flex: 1;
+                overflow-y: auto;
+                background: var(--bg-color, #ffffff);
+            `;
+            body.appendChild(contentContainer);
+            modal.appendChild(body);
+        } else {
+            modal.appendChild(contentContainer);
+        }
+        
+        modalOverlay.appendChild(modal);
+        document.body.appendChild(modalOverlay);
+        
+        // Setup modal animations and events
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay && modalInfo.options.closeOnBackdrop !== false) {
+                modalOverlay.classList.remove('active');
+                setTimeout(() => {
+                    modalOverlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+        });
+        
+        // Keyboard events
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+                modalOverlay.classList.remove('active');
+                setTimeout(() => {
+                    modalOverlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+        });
+        
+        // Override standard methods when capturing modal content
+        const originalMethods = {};
+        if (this.isCapturingModal) {
+            // Store original methods that need to be overridden
+            ['heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'paragraph', 'text', 'button', 'input', 'textarea', 'select', 'image', 'divStart', 'divEnd'].forEach(method => {
+                if (this[method]) {
+                    originalMethods[method] = this[method].bind(this);
+                    this[method] = (...args) => {
+                        // Capture HTML instead of directly adding to DOM
+                        const tempContainer = document.createElement('div');
+                        const tempWeaver = new WebWeaver(tempContainer.id);
+                        originalMethods[method].apply(tempWeaver, args);
+                        this.modalContent.push(tempContainer.innerHTML);
+                        return this;
+                    };
+                }
+            });
+        }
+    }
+
+    // Helper method to parse options string
+    parseOptionsString(optionsString) {
+        try {
+            return JSON.parse(optionsString);
+        } catch (e) {
+            // Parse simple key:value pairs
+            const options = {};
+            optionsString.split(',').forEach(pair => {
+                const [key, value] = pair.split(':').map(s => s.trim());
+                if (key && value) {
+                    options[key] = value === 'true' ? true : value === 'false' ? false : value;
+                }
+            });
+            return options;
+        }
+    }
+
     // Modal Methods
     createModal(title, content, options = {}) {
         const {
